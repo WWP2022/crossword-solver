@@ -10,6 +10,7 @@ class MyCrosswords extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Text(
       'Moje rozwiązane krzyżówki',
+      textAlign: TextAlign.center,
       style: optionStyle,
     );
   }
