@@ -1,4 +1,5 @@
 import 'package:camera/camera.dart';
+import 'package:crossword_solver/view/crossword_solver.dart';
 import 'package:crossword_solver/view/my_account.dart';
 import 'package:crossword_solver/view/my_question_database.dart';
 import 'package:crossword_solver/view/solve_crossword.dart';
@@ -40,6 +41,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
     const MyQuestionDatabase(),
     const MyCrosswords(),
     const MyAccount(),
+    const CrosswordSolverWidget()
   ];
 
   void _onItemTapped(int index) {
@@ -88,6 +90,10 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
               BottomNavigationBarItem(
                 icon: Icon(Icons.person),
                 label: 'Moje konto',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.newspaper),
+                label: 'Rozwiązana krzyżówka',
               ),
             ],
             fixedColor: Colors.indigo,
