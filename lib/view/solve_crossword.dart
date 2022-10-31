@@ -2,7 +2,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
+import 'package:crossword_solver/util/path_util.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 
 late CameraDescription cameraa;
 
@@ -84,11 +87,10 @@ class TakePictureScreenState extends State<TakePictureScreen> {
           try {
             // Ensure that the camera is initialized.
             await _initializeControllerFuture;
-
             // Attempt to take a picture and get the file `image`
             // where it was saved.
-            final image = await _controller.takePicture();
-
+            XFile image = await _controller.takePicture();
+            saveImage(image);
             if (!mounted) {
               return;
             }
@@ -112,6 +114,13 @@ class TakePictureScreenState extends State<TakePictureScreen> {
       ),
     );
   }
+
+  saveImage(XFile image) async {
+    String duplicateFilePath = await PathUtil.localPath;
+    String fileName = basename(image.name);
+    await image.saveTo('$duplicateFilePath/$fileName');
+  }
+
 }
 
 // A widget that displays the picture taken by the user.
