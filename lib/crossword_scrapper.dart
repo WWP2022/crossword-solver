@@ -1,8 +1,8 @@
 import 'dart:io';
 
+import 'package:beautiful_soup_dart/beautiful_soup.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
-import 'package:beautiful_soup_dart/beautiful_soup.dart';
 
 class CrosswordScrapper {
   // Scrap data from hasladokrzyzowek.com site
@@ -101,7 +101,8 @@ class CrosswordScrapper {
     var possibleAnswers = Set<String>.from(possibleAnswers_2)
       ..addAll(possibleAnswers_3);
 
-    debugPrint('definition: $searchMeaning, possible answers: $possibleAnswers');
+    debugPrint(
+        'definition: $searchMeaning, possible answers: $possibleAnswers');
     return possibleAnswers.toList();
   }
 }
