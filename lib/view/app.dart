@@ -1,4 +1,4 @@
-import 'package:crossword_solver/view/crossword_solver.dart';
+import 'package:crossword_solver/solveCrossword/crossword_solver.dart';
 import 'package:crossword_solver/view/my_account.dart';
 import 'package:crossword_solver/view/my_question_database.dart';
 import 'package:crossword_solver/view/solve_crossword.dart';

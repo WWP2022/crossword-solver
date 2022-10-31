@@ -1,7 +1,7 @@
 import 'package:crossword_solver/model/direction.dart';
 import 'package:tuple/tuple.dart';
 
-import '../crossword_scrapper.dart';
+import '../solveCrossword/crossword_scrapper.dart';
 
 class CrosswordNode {
   String definition;
