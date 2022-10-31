@@ -1,4 +1,3 @@
-import 'package:camera/camera.dart';
 import 'package:crossword_solver/view/crossword_solver.dart';
 import 'package:crossword_solver/view/my_account.dart';
 import 'package:crossword_solver/view/my_question_database.dart';
@@ -8,14 +7,10 @@ import 'package:flutter/services.dart';
 
 import 'my_crosswords.dart';
 
-late CameraDescription cameraa;
-
 class App extends StatelessWidget {
   static const String _title = 'Rozwiąż krzyżówkę';
 
-  App(camera, {super.key}) {
-    cameraa = camera;
-  }
+  const App({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +32,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   int _selectedIndex = 0;
 
   static final List<Widget> _widgetOptions = <Widget>[
-    SolveCrossword(cameraa),
+    const SolveCrossword(),
     const MyQuestionDatabase(),
     const MyCrosswords(),
     const MyAccount(),

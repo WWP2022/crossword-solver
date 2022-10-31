@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../example_crossword_data.dart';
-
 import '../ffi_bridge.dart';
 
 final FFIBridge _ffiBridge = FFIBridge();
@@ -14,7 +13,6 @@ class CrosswordSolverWidget extends StatefulWidget {
 }
 
 class _CrosswordSolverWidget extends State<CrosswordSolverWidget> {
-
   // Strings to store final data from crossword
   String result1 = _ffiBridge.getNumber().toString();
   String result2 = '';
