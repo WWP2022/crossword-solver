@@ -22,11 +22,11 @@ class SolveCrossword extends StatelessWidget {
   Widget build(BuildContext context) {
     return FutureBuilder(
         future: isCameraSet(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
+        builder: (context, camera) {
+          if (camera.hasData) {
             return const TakePictureScreen();
           } else {
-            return const CircularProgressIndicator();
+            return const Center(child: CircularProgressIndicator());
           }
         });
   }
@@ -66,7 +66,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
           if (snapshot.connectionState == ConnectionState.done) {
             return CameraPreview(_controller);
           } else {
-            return const CircularProgressIndicator();
+            return const Center(child: CircularProgressIndicator());
           }
         },
       ),

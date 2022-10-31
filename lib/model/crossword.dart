@@ -1,4 +1,4 @@
-import 'package:crossword_solver/example_crossword_data.dart';
+import 'package:crossword_solver/solveCrossword/example_crossword_data.dart';
 import 'package:crossword_solver/model/direction.dart';
 
 import 'crossword_node.dart';

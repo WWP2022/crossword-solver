@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../example_crossword_data.dart';
-import '../ffi_bridge.dart';
+import 'example_crossword_data.dart';
+import 'ffi_bridge.dart';
 
 final FFIBridge _ffiBridge = FFIBridge();
 
@@ -31,8 +31,6 @@ class _CrosswordSolverWidget extends State<CrosswordSolverWidget> {
   String result15 = '';
   String result16 = '';
 
-  // boolean to show CircularProgressIndication
-  // while Web Scraping awaits
   bool isLoading = false;
 
   Future<List<String>> solve() async {
