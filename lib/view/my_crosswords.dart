@@ -6,30 +6,29 @@ import 'package:crossword_solver/util/path_util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../database/photoRepository.dart';
+import '../model/photo.dart';
+
 class MyCrosswords extends StatelessWidget {
   const MyCrosswords({super.key});
 
-  Future<List<FileSystemEntity>> getImages() async {
-    String localPath = await PathUtil.localPath;
-    List<FileSystemEntity> imagesList = io.Directory("$localPath/")
-        .listSync()
-        .where((element) => isJpg(element.path))
-        .toList();
-
-    return imagesList;
+  Future<List<Photo>> getImages() async {
+    PhotoRepository photoRepository = PhotoRepository();
+    List<Photo> photos = await photoRepository.getAllPhotos();
+    return photos;
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<FileSystemEntity>>(
+    return FutureBuilder<List<Photo>>(
         future: getImages(),
         builder: (context, images) {
           if (images.hasData) {
             return ListView(
                 padding: const EdgeInsets.all(5),
                 children: <Widget>[
-                  for (var img in images.data!)
-                    createCrosswordList(context, img.path),
+                  for (var photo in images.data!)
+                    createCrosswordList(context, photo),
                 ]);
           } else {
             return const Center(child: CircularProgressIndicator());
@@ -41,9 +40,10 @@ class MyCrosswords extends StatelessWidget {
     return path.endsWith(".jpg");
   }
 
-  createCrosswordList(BuildContext context, String path) {
-    final image = Image.file(File(path));
-    final date = DateTime.now().toString();
+  createCrosswordList(BuildContext context, Photo photo) {
+    Image image = Image.file(File(photo.path));
+    String date = photo.date.toIso8601String();
+    String crosswordName = photo.name;
 
     return Container(
         margin: const EdgeInsets.only(bottom: 5.0),
@@ -62,7 +62,7 @@ class MyCrosswords extends StatelessWidget {
                   },
                 )),
             const Expanded(flex: 25, child: SizedBox()),
-            const Expanded(flex: 300, child: Text('Krzyżówka X')),
+            Expanded(flex: 300, child: Text(crosswordName)),
             const Expanded(flex: 25, child: SizedBox()),
             Expanded(flex: 300, child: Text(date)),
             const Expanded(flex: 25, child: SizedBox()),
