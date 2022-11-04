@@ -2,9 +2,12 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
+import 'package:crossword_solver/database/photoRepository.dart';
 import 'package:crossword_solver/util/path_util.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
+
+import '../model/photo.dart';
 
 late CameraDescription cameraDescription;
 
@@ -75,6 +78,8 @@ class TakePictureScreenState extends State<TakePictureScreen> {
           try {
             await _initializeControllerFuture;
             XFile image = await _controller.takePicture();
+
+
             saveImage(image);
             if (!mounted) {
               return;
@@ -99,7 +104,13 @@ class TakePictureScreenState extends State<TakePictureScreen> {
   saveImage(XFile image) async {
     String duplicateFilePath = await PathUtil.localPath;
     String fileName = basename(image.name);
+
+    final path = '$duplicateFilePath/$fileName';
     await image.saveTo('$duplicateFilePath/$fileName');
+
+    PhotoRepository photoRepository = PhotoRepository();
+    Photo photo = Photo(path: path, name: image.name, date: DateTime.now());
+    photoRepository.insertPhoto(photo);
   }
 }
 
