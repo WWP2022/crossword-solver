@@ -3,8 +3,14 @@ import 'dart:async';
 import 'package:camera/camera.dart';
 import 'package:crossword_solver/view/save_crossword.dart';
 import 'package:flutter/material.dart';
+import 'package:native_opencv/bridge_ffi.dart';
+import 'package:path/path.dart';
+
+import '../util/path_util.dart';
 
 late CameraDescription cameraDescription;
+
+final FFIBridge _ffiBridge = FFIBridge();
 
 class SolveCrossword extends StatelessWidget {
   const SolveCrossword({super.key});
@@ -73,6 +79,13 @@ class TakePictureScreenState extends State<TakePictureScreen> {
           try {
             await _initializeControllerFuture;
             XFile image = await _controller.takePicture();
+
+            // TODO this is only for tests cpp code
+            // String duplicateFilePath = await PathUtil.localPath;
+            // String fileName = basename(image.name);
+            // String path = '$duplicateFilePath/$fileName';
+            // print(_ffiBridge.imageProcessing(path));
+            //TODO this is only for tests cpp code
 
             if (!mounted) {
               return;

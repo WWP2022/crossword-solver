@@ -205,6 +205,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.8.0"
+  native_opencv:
+    dependency: "direct main"
+    description:
+      path: native_opencv
+      relative: true
+    source: path
+    version: "0.0.1"
   path:
     dependency: "direct main"
     description:

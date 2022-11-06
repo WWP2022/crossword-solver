@@ -43,6 +43,9 @@ dependencies:
   http: ^0.13.5
   beautiful_soup_dart: ^0.3.0
 
+  native_opencv:
+    path: native_opencv
+
   ffi:
 
 dev_dependencies:
@@ -73,6 +76,7 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
     - assets/images/panorama_1.png
+    - assets/images/crossword_big_pol.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
