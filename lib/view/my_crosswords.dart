@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:io' as io;
 import 'dart:io';
 
-import 'package:crossword_solver/util/path_util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
