@@ -6,6 +6,7 @@ import 'package:crossword_solver/util/path_util.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 
+import '../util/crop_compress_image.dart';
 import '../model/photo.dart';
 
 class SaveCrossword extends StatefulWidget {
@@ -51,7 +52,7 @@ class _SaveCrossword extends State<SaveCrossword> {
             foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
           ),
           onPressed: () {
-            saveImage(widget.image, myController.text);
+            saveAndDropImage(widget.image, myController.text);
             Navigator.of(context).pop();
           },
           child: const Text('Zapisz zdjęcie'),
@@ -60,12 +61,19 @@ class _SaveCrossword extends State<SaveCrossword> {
     );
   }
 
-  saveImage(XFile image, String photoName) async {
+  saveAndDropImage(XFile image, String photoName) async {
     String duplicateFilePath = await PathUtil.localPath;
     String fileName = basename(image.name);
 
     final path = '$duplicateFilePath/$fileName';
     await image.saveTo('$duplicateFilePath/$fileName');
+
+    File savedImage = File('$duplicateFilePath/$fileName');
+    var compressedImage = await AppHelper.compress(image: savedImage);
+    var croppedImage = await AppHelper.cropImage(compressedImage);
+
+    XFile processedImage = XFile.fromData(await croppedImage!.readAsBytes());
+    await processedImage.saveTo('$duplicateFilePath/$fileName');
 
     PhotoRepository photoRepository = PhotoRepository();
     Photo photo = Photo(path: path, name: photoName, date: DateTime.now());
