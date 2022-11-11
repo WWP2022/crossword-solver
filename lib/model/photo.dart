@@ -45,7 +45,5 @@ class Photo {
       id: json[PhotoFields.id] as int?,
       path: json[PhotoFields.path] as String,
       name: json[PhotoFields.name] as String,
-      date: DateTime.parse(json[PhotoFields.date] as String)
-  );
-
+      date: DateTime.parse(json[PhotoFields.date] as String));
 }
