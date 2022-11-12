@@ -3,6 +3,8 @@ import 'package:sqflite/sqflite.dart';
 import '../model/photo.dart';
 import 'crosswordDatabase.dart';
 
+//TODO After we add photo processing, we will have many crossword with suffixes
+//TODO such as _processed, _raw, We will need to change logic for it later.
 class PhotoRepository {
   Future<Photo> insertPhoto(Photo photo) async {
     final db = await CrosswordDatabase.instance.database;
