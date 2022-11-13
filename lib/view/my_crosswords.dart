@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:crossword_solver/util/loading_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -15,7 +16,6 @@ class MyCrosswords extends StatefulWidget {
 }
 
 class MyCrosswordsState extends State<MyCrosswords> {
-
   late List<Photo> photos;
 
   @override
@@ -54,7 +54,7 @@ class MyCrosswordsState extends State<MyCrosswords> {
                     createCrosswordList(context, photo),
                 ]);
           } else {
-            return const Center(child: CircularProgressIndicator());
+            return LoadingPage.buildLoadingPage();
           }
         });
   }

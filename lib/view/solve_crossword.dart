@@ -3,14 +3,10 @@ import 'dart:async';
 import 'package:camera/camera.dart';
 import 'package:crossword_solver/view/save_crossword.dart';
 import 'package:flutter/material.dart';
-import 'package:native_opencv/bridge_ffi.dart';
-import 'package:path/path.dart';
 
-import '../util/path_util.dart';
+import '../util/loading_page.dart';
 
 late CameraDescription cameraDescription;
-
-final FFIBridge _ffiBridge = FFIBridge();
 
 class SolveCrossword extends StatelessWidget {
   const SolveCrossword({super.key});
@@ -30,7 +26,7 @@ class SolveCrossword extends StatelessWidget {
           if (camera.hasData) {
             return const TakePictureScreen();
           } else {
-            return const Center(child: CircularProgressIndicator());
+            return LoadingPage.buildLoadingPage();
           }
         });
   }
@@ -61,6 +57,17 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     super.dispose();
   }
 
+  Transform buildFullScreenCamera(BuildContext context) {
+    double controllerAspectRatio = _controller.value.aspectRatio;
+    double contextAspectRatio = MediaQuery.of(context).size.aspectRatio;
+    final scale = 1 / (controllerAspectRatio * contextAspectRatio);
+    return Transform.scale(
+      scale: scale,
+      alignment: Alignment.topCenter,
+      child: CameraPreview(_controller),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,9 +75,9 @@ class TakePictureScreenState extends State<TakePictureScreen> {
         future: _initializeControllerFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            return CameraPreview(_controller);
+            return buildFullScreenCamera(context);
           } else {
-            return const Center(child: CircularProgressIndicator());
+            return LoadingPage.buildLoadingPage();
           }
         },
       ),
@@ -84,6 +91,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
             // String duplicateFilePath = await PathUtil.localPath;
             // String fileName = basename(image.name);
             // String path = '$duplicateFilePath/$fileName';
+            // FFIBridge _ffiBridge = FFIBridge();
             // print(_ffiBridge.imageProcessing(path));
             //TODO this is only for tests cpp code
 
