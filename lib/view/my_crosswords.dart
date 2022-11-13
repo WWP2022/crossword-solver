@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:crossword_solver/util/loading_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 
 import '../database/photoRepository.dart';
 import '../model/photo.dart';
@@ -59,59 +60,67 @@ class MyCrosswordsState extends State<MyCrosswords> {
         });
   }
 
-  bool isJpg(String path) {
-    return path.endsWith(".jpg");
-  }
-
-  createCrosswordList(BuildContext context, Photo photo) {
+  Container createCrosswordList(BuildContext context, Photo photo) {
     Image image = Image.file(File(photo.path));
-    String date = photo.date.toIso8601String();
     String crosswordName = photo.name;
 
     return Container(
         margin: const EdgeInsets.only(bottom: 5.0),
         child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
           const Expanded(flex: 25, child: SizedBox()),
-          Expanded(
-              flex: 300,
-              child: GestureDetector(
-                child: image,
-                onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (_) {
-                    return DetailScreen(image);
-                  }));
-                },
-              )),
+          buildClickableImage(image),
           const Expanded(flex: 25, child: SizedBox()),
           Expanded(flex: 300, child: Text(crosswordName)),
           const Expanded(flex: 25, child: SizedBox()),
-          Expanded(flex: 300, child: Text(date)),
+          buildDateInProperFormat(photo.date),
           const Expanded(flex: 25, child: SizedBox()),
-          Expanded(
-            flex: 300,
-            child: IconButton(
-              onPressed: () {
-                setState(() {
-                  photos.remove(photo);
-                });
-                // removing crossword also from database
-                removeImage(photo.id!);
-              },
-              icon: const Icon(
-                Icons.delete,
-                size: 40.0,
-                color: Colors.red,
-              ),
-            ),
-          ),
+          buildRemoveButton(photo),
         ]));
+  }
+
+  Expanded buildClickableImage(Image image) {
+    return Expanded(
+        flex: 300,
+        child: GestureDetector(
+          child: image,
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) {
+              return DetailScreen(image);
+            }));
+          },
+        ));
+  }
+
+  Expanded buildDateInProperFormat(DateTime dateTime) {
+    DateFormat format = DateFormat('yyyy-MM-dd\nhh:mm');
+    return Expanded(flex: 300, child: Text(format.format(dateTime)));
+  }
+
+  Expanded buildRemoveButton(Photo photo) {
+    return Expanded(
+      flex: 300,
+      child: IconButton(
+        onPressed: () {
+          setState(() {
+            photos.remove(photo);
+          });
+          // removing crossword also from database
+          removeImage(photo.id!);
+        },
+        icon: const Icon(
+          Icons.delete,
+          size: 40.0,
+          color: Colors.red,
+        ),
+      ),
+    );
   }
 }
 
 class DetailScreen extends StatefulWidget {
-  Image image;
+  final Image image;
 
-  DetailScreen(this.image, {super.key});
+  const DetailScreen(this.image, {super.key});
 
   get getImage => image;
 
