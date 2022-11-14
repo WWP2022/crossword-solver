@@ -30,6 +30,12 @@ class PhotoRepository {
     }
   }
 
+  Future<int> updatePhoto(Photo photo) async {
+    final db = await CrosswordDatabase.instance.database;
+    return db.update('photos', photo.toJson(),
+        where: '${PhotoFields.id} = ?', whereArgs: [photo.id]);
+  }
+
   Future<List<Photo>> getAllPhotos() async {
     final db = await CrosswordDatabase.instance.database;
 

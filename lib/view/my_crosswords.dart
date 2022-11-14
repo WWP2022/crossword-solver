@@ -25,6 +25,10 @@ class MyCrosswordsState extends State<MyCrosswords> {
     getPhotos();
   }
 
+  void refreshState() {
+    getPhotos();
+  }
+
   getPhotos() async {
     PhotoRepository photoRepository = PhotoRepository();
     photos = await photoRepository.getAllPhotos();
@@ -62,7 +66,6 @@ class MyCrosswordsState extends State<MyCrosswords> {
 
   Container createCrosswordList(BuildContext context, Photo photo) {
     Image image = Image.file(File(photo.path));
-    String crosswordName = photo.name;
 
     return Container(
         margin: const EdgeInsets.only(bottom: 5.0),
@@ -70,7 +73,7 @@ class MyCrosswordsState extends State<MyCrosswords> {
           const Expanded(flex: 25, child: SizedBox()),
           buildClickableImage(image),
           const Expanded(flex: 25, child: SizedBox()),
-          Expanded(flex: 300, child: Text(crosswordName)),
+          buildClickableCrosswordName(photo, image),
           const Expanded(flex: 25, child: SizedBox()),
           buildDateInProperFormat(photo.date),
           const Expanded(flex: 25, child: SizedBox()),
@@ -87,6 +90,21 @@ class MyCrosswordsState extends State<MyCrosswords> {
             Navigator.push(context, MaterialPageRoute(builder: (_) {
               return DetailScreen(image);
             }));
+          },
+        ));
+  }
+
+  Expanded buildClickableCrosswordName(Photo photo, Image image) {
+    return Expanded(
+        flex: 300,
+        child: GestureDetector(
+          child: Text(photo.name),
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) {
+              return ModifyCrosswordNameScreen(photo, image);
+            })).then((value) => {
+                  if (value == true) {refreshState()}
+                });
           },
         ));
   }
@@ -114,6 +132,92 @@ class MyCrosswordsState extends State<MyCrosswords> {
         ),
       ),
     );
+  }
+}
+
+class ModifyCrosswordNameScreen extends StatefulWidget {
+  final Photo photo;
+  final Image image;
+
+  const ModifyCrosswordNameScreen(this.photo, this.image, {super.key});
+
+  @override
+  ModifyCrosswordNameScreenState createState() =>
+      ModifyCrosswordNameScreenState();
+}
+
+class ModifyCrosswordNameScreenState extends State<ModifyCrosswordNameScreen> {
+  final modifyCrosswordNameController = TextEditingController();
+
+  @override
+  initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is disposed.
+    modifyCrosswordNameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(title: const Text('Zmodyfikuj nazwę krzyżówki')),
+        body: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics()),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Center(widthFactor: 0.5, child: widget.image),
+                SizedBox(
+                  child: TextField(
+                    textAlign: TextAlign.center,
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      hintText: widget.photo.name,
+                      alignLabelWithHint: true,
+                    ),
+                    controller: modifyCrosswordNameController,
+                  ),
+                ),
+                TextButton(
+                  style: ButtonStyle(
+                    foregroundColor:
+                        MaterialStateProperty.all<Color>(Colors.blue),
+                    backgroundColor:
+                        MaterialStateProperty.all<Color>(Colors.green),
+                  ),
+                  onPressed: () => {
+                    saveCrosswordName(
+                        widget.photo, modifyCrosswordNameController.text),
+                    Navigator.pop(context, true),
+                  },
+                  child: const Text('Zmodyfikuj nazwę krzyżówki'),
+                ),
+                TextButton(
+                  style: ButtonStyle(
+                    foregroundColor:
+                        MaterialStateProperty.all<Color>(Colors.blue),
+                    backgroundColor:
+                        MaterialStateProperty.all<Color>(Colors.red),
+                  ),
+                  onPressed: () => {
+                    Navigator.pop(context, false),
+                  },
+                  child: const Text('Anuluj'),
+                ),
+              ],
+            )));
+  }
+
+  void saveCrosswordName(Photo photo, String text) {
+    PhotoRepository photoRepository = PhotoRepository();
+    photo.name = text;
+    photoRepository.updatePhoto(photo);
   }
 }
 

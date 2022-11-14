@@ -12,10 +12,10 @@ class PhotoFields {
 class Photo {
   final int? id;
   final String path;
-  final String name;
+  String name;
   final DateTime date;
 
-  const Photo({
+  Photo({
     this.id,
     required this.path,
     required this.name,
