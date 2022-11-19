@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:crossword_solver/util/loading_page.dart';
+import 'package:crossword_solver/util/loading_page_util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -59,7 +59,7 @@ class MyCrosswordsState extends State<MyCrosswords> {
                     createCrosswordList(context, photo),
                 ]);
           } else {
-            return LoadingPage.buildLoadingPage();
+            return LoadingPageUtil.buildLoadingPage();
           }
         });
   }
@@ -191,10 +191,10 @@ class ModifyCrosswordNameScreenState extends State<ModifyCrosswordNameScreen> {
                     backgroundColor:
                         MaterialStateProperty.all<Color>(Colors.green),
                   ),
-                  onPressed: () {
+                  onPressed: () async {
                     String newCrosswordName =
                         modifyCrosswordNameController.text;
-                    if (isCrosswordNameWrong(
+                    if (await isCrosswordNameWrong(
                         widget.photo.name, newCrosswordName)) {
                       showEmptyNameAlert(context);
                     } else {
@@ -231,7 +231,7 @@ class ModifyCrosswordNameScreenState extends State<ModifyCrosswordNameScreen> {
     AlertDialog alert = AlertDialog(
       title: const Text("Nie udało się zapisać zmiany nazwy krzyżówki!"),
       content: const Text(
-          "Nazwa krzyżówki nie może być pusta lub identyczna z poprzednią."),
+          "Nazwa krzyżówki nie może być pusta lub identyczna z już istniejącą."),
       actions: [okButton],
     );
 
@@ -249,9 +249,16 @@ class ModifyCrosswordNameScreenState extends State<ModifyCrosswordNameScreen> {
     photoRepository.updatePhoto(photo);
   }
 
-  bool isCrosswordNameWrong(String oldCrosswordName, String newCrosswordName) {
-    if (oldCrosswordName == newCrosswordName) return true;
-    if (newCrosswordName.isEmpty) return true;
+  Future<bool> isCrosswordNameWrong(
+      String oldCrosswordName, String newCrosswordName) async {
+    PhotoRepository photoRepository = PhotoRepository();
+    List<Photo> photos = await photoRepository.getAllPhotos();
+    if (photos.map((photo) => photo.name).contains(newCrosswordName)) {
+      return true;
+    }
+    if (newCrosswordName.isEmpty) {
+      return true;
+    }
     return false;
   }
 }
