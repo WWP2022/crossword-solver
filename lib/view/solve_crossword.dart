@@ -1,10 +1,15 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:crossword_solver/view/save_crossword.dart';
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:path/path.dart';
 
-import '../util/loading_page.dart';
+import '../util/modify_image_util.dart';
+import '../util/loading_page_util.dart';
+import '../util/path_util.dart';
 
 late CameraDescription cameraDescription;
 
@@ -26,7 +31,7 @@ class SolveCrossword extends StatelessWidget {
           if (camera.hasData) {
             return const TakePictureScreen();
           } else {
-            return LoadingPage.buildLoadingPage();
+            return LoadingPageUtil.buildLoadingPage();
           }
         });
   }
@@ -77,7 +82,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
           if (snapshot.connectionState == ConnectionState.done) {
             return buildFullScreenCamera(context);
           } else {
-            return LoadingPage.buildLoadingPage();
+            return LoadingPageUtil.buildLoadingPage();
           }
         },
       ),
@@ -98,13 +103,11 @@ class TakePictureScreenState extends State<TakePictureScreen> {
             if (!mounted) {
               return;
             }
-
+            String path = await cropImage(image);
             await Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (context) => DisplayPictureScreen(
-                  image: image,
-                ),
-              ),
+                  builder: (context) =>
+                      SaveCrossword(path: path, imageName: image.name)),
             );
           } catch (e) {
             print(e);
@@ -114,17 +117,19 @@ class TakePictureScreenState extends State<TakePictureScreen> {
       ),
     );
   }
-}
 
-class DisplayPictureScreen extends StatelessWidget {
-  final XFile image;
+  Future<String> cropImage(XFile image) async {
+    String duplicateFilePath = await PathUtil.localPath;
+    String fileName = basename(image.name);
+    final path = '$duplicateFilePath/$fileName';
+    await image.saveTo('$duplicateFilePath/$fileName');
 
-  const DisplayPictureScreen({super.key, required this.image});
+    File savedImage = File(path);
+    File compressedImage = await ModifyImageUtil.compress(image: savedImage);
+    CroppedFile? croppedImage = await ModifyImageUtil.cropImage(compressedImage);
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(title: const Text('Zdjęcie nierozwiązanej krzyżówki')),
-        body: SaveCrossword(image));
+    XFile processedImage = XFile.fromData(await croppedImage!.readAsBytes());
+    await processedImage.saveTo(path);
+    return path;
   }
 }

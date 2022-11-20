@@ -110,36 +110,36 @@ class _CrosswordSolverWidget extends State<CrosswordSolverWidget> {
                         onPressed: () async {
                           // getLines("assets/images/panorama_1.png");
                           // Setting isLoading true to show the loader
-                          // setState(() {
-                          //   isLoading = true;
-                          // });
-                          //
-                          // // Awaiting for web scraping function
-                          // // to return list of strings
-                          // final response = await solve();
-                          //
-                          // // Setting the received strings to be
-                          // // displayed and making isLoading false
-                          // // to hide the loader
-                          // setState(() {
-                          //   result1 = response[0];
-                          //   result2 = response[1];
-                          //   result3 = response[2];
-                          //   result4 = response[3];
-                          //   result5 = response[4];
-                          //   result6 = response[5];
-                          //   result7 = response[6];
-                          //   result8 = response[7];
-                          //   result9 = response[8];
-                          //   result10 = response[9];
-                          //   result11 = response[10];
-                          //   result12 = response[11];
-                          //   result13 = response[12];
-                          //   result14 = response[13];
-                          //   result15 = response[14];
-                          //   result16 = response[15];
-                          //   isLoading = false;
-                          // });
+                          setState(() {
+                            isLoading = true;
+                          });
+
+                          // Awaiting for web scraping function
+                          // to return list of strings
+                          final response = await solve();
+
+                          // Setting the received strings to be
+                          // displayed and making isLoading false
+                          // to hide the loader
+                          setState(() {
+                            result1 = response[0];
+                            result2 = response[1];
+                            result3 = response[2];
+                            result4 = response[3];
+                            result5 = response[4];
+                            result6 = response[5];
+                            result7 = response[6];
+                            result8 = response[7];
+                            result9 = response[8];
+                            result10 = response[9];
+                            result11 = response[10];
+                            result12 = response[11];
+                            result13 = response[12];
+                            result14 = response[13];
+                            result15 = response[14];
+                            result16 = response[15];
+                            isLoading = false;
+                          });
                         },
                         color: Colors.green,
                         child: const Text(

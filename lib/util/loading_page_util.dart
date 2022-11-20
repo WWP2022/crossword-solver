@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class LoadingPage {
+class LoadingPageUtil {
   static Center buildLoadingPage() {
     return const Center(child: CircularProgressIndicator());
   }

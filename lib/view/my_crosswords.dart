@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:crossword_solver/util/loading_page.dart';
+import 'package:crossword_solver/util/loading_page_util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -59,7 +59,7 @@ class MyCrosswordsState extends State<MyCrosswords> {
                     createCrosswordList(context, photo),
                 ]);
           } else {
-            return LoadingPage.buildLoadingPage();
+            return LoadingPageUtil.buildLoadingPage();
           }
         });
   }
@@ -152,6 +152,7 @@ class ModifyCrosswordNameScreenState extends State<ModifyCrosswordNameScreen> {
   @override
   initState() {
     super.initState();
+    modifyCrosswordNameController.text = widget.photo.name;
   }
 
   @override
@@ -176,9 +177,8 @@ class ModifyCrosswordNameScreenState extends State<ModifyCrosswordNameScreen> {
                 SizedBox(
                   child: TextField(
                     textAlign: TextAlign.center,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       border: InputBorder.none,
-                      hintText: widget.photo.name,
                       alignLabelWithHint: true,
                     ),
                     controller: modifyCrosswordNameController,
@@ -191,10 +191,16 @@ class ModifyCrosswordNameScreenState extends State<ModifyCrosswordNameScreen> {
                     backgroundColor:
                         MaterialStateProperty.all<Color>(Colors.green),
                   ),
-                  onPressed: () => {
-                    saveCrosswordName(
-                        widget.photo, modifyCrosswordNameController.text),
-                    Navigator.pop(context, true),
+                  onPressed: () async {
+                    String newCrosswordName =
+                        modifyCrosswordNameController.text;
+                    if (await isCrosswordNameWrong(
+                        widget.photo.name, newCrosswordName)) {
+                      showEmptyNameAlert(context);
+                    } else {
+                      saveCrosswordName(widget.photo, newCrosswordName);
+                      Navigator.pop(context, true);
+                    }
                   },
                   child: const Text('Zmodyfikuj nazwę krzyżówki'),
                 ),
@@ -214,10 +220,46 @@ class ModifyCrosswordNameScreenState extends State<ModifyCrosswordNameScreen> {
             )));
   }
 
+  void showEmptyNameAlert(BuildContext context) {
+    Widget okButton = TextButton(
+      child: const Text("OK"),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+    );
+
+    AlertDialog alert = AlertDialog(
+      title: const Text("Nie udało się zapisać zmiany nazwy krzyżówki!"),
+      content: const Text(
+          "Nazwa krzyżówki nie może być pusta lub identyczna z już istniejącą."),
+      actions: [okButton],
+    );
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
   void saveCrosswordName(Photo photo, String text) {
     PhotoRepository photoRepository = PhotoRepository();
     photo.name = text;
     photoRepository.updatePhoto(photo);
+  }
+
+  Future<bool> isCrosswordNameWrong(
+      String oldCrosswordName, String newCrosswordName) async {
+    PhotoRepository photoRepository = PhotoRepository();
+    List<Photo> photos = await photoRepository.getAllPhotos();
+    if (photos.map((photo) => photo.name).contains(newCrosswordName)) {
+      return true;
+    }
+    if (newCrosswordName.isEmpty) {
+      return true;
+    }
+    return false;
   }
 }
 
