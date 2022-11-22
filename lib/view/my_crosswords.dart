@@ -71,7 +71,7 @@ class MyCrosswordsState extends State<MyCrosswords> {
         margin: const EdgeInsets.only(bottom: 5.0),
         child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
           const Expanded(flex: 25, child: SizedBox()),
-          buildClickableImage(image),
+          buildClickableImage(photo, image),
           const Expanded(flex: 25, child: SizedBox()),
           buildClickableCrosswordName(photo, image),
           const Expanded(flex: 25, child: SizedBox()),
@@ -81,15 +81,17 @@ class MyCrosswordsState extends State<MyCrosswords> {
         ]));
   }
 
-  Expanded buildClickableImage(Image image) {
+  Expanded buildClickableImage(Photo photo, Image image) {
     return Expanded(
         flex: 300,
         child: GestureDetector(
           child: image,
           onTap: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) {
-              return DetailScreen(image);
-            }));
+              return ModifyCrosswordNameScreen(photo, image);
+            })).then((value) => {
+                  if (value == true) {refreshState()}
+                });
           },
         ));
   }
@@ -173,48 +175,65 @@ class ModifyCrosswordNameScreenState extends State<ModifyCrosswordNameScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                Center(widthFactor: 0.5, child: widget.image),
                 SizedBox(
-                  child: TextField(
-                    textAlign: TextAlign.center,
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      alignLabelWithHint: true,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextField(
+                      textAlign: TextAlign.center,
+                      decoration: const InputDecoration(
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(width: 2, color: Colors.black),
+                        ),
+                        alignLabelWithHint: true,
+                      ),
+                      controller: modifyCrosswordNameController,
                     ),
-                    controller: modifyCrosswordNameController,
                   ),
                 ),
-                TextButton(
-                  style: ButtonStyle(
-                    foregroundColor:
-                        MaterialStateProperty.all<Color>(Colors.blue),
-                    backgroundColor:
-                        MaterialStateProperty.all<Color>(Colors.green),
-                  ),
-                  onPressed: () async {
-                    String newCrosswordName =
-                        modifyCrosswordNameController.text;
-                    if (await isCrosswordNameWrong(
-                        widget.photo.name, newCrosswordName)) {
-                      showEmptyNameAlert(context);
-                    } else {
-                      saveCrosswordName(widget.photo, newCrosswordName);
-                      Navigator.pop(context, true);
-                    }
-                  },
-                  child: const Text('Zmodyfikuj nazwę krzyżówki'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      style: ButtonStyle(
+                        foregroundColor:
+                            MaterialStateProperty.all<Color>(Colors.black),
+                        backgroundColor:
+                            MaterialStateProperty.all<Color>(Colors.green),
+                      ),
+                      onPressed: () async {
+                        String newCrosswordName =
+                            modifyCrosswordNameController.text;
+                        if (await isCrosswordNameWrong(
+                            widget.photo.name, newCrosswordName)) {
+                          showEmptyNameAlert(context);
+                        } else {
+                          saveCrosswordName(widget.photo, newCrosswordName);
+                          Navigator.pop(context, true);
+                        }
+                      },
+                      child: const Icon(Icons.check),
+                    ),
+                    TextButton(
+                      style: ButtonStyle(
+                        foregroundColor:
+                            MaterialStateProperty.all<Color>(Colors.black),
+                        backgroundColor:
+                            MaterialStateProperty.all<Color>(Colors.red),
+                      ),
+                      onPressed: () => {
+                        Navigator.pop(context, false),
+                      },
+                      child: const Icon(Icons.close),
+                    ),
+                  ],
                 ),
-                TextButton(
-                  style: ButtonStyle(
-                    foregroundColor:
-                        MaterialStateProperty.all<Color>(Colors.blue),
-                    backgroundColor:
-                        MaterialStateProperty.all<Color>(Colors.red),
-                  ),
-                  onPressed: () => {
-                    Navigator.pop(context, false),
-                  },
-                  child: const Text('Anuluj'),
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.6,
+                  // width: MediaQuery.of(context).size.width,
+                  child: Center(
+                      heightFactor: MediaQuery.of(context).size.height,
+                      widthFactor: 0.5,
+                      child: widget.image),
                 ),
               ],
             )));
