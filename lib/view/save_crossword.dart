@@ -7,10 +7,8 @@ import '../model/photo.dart';
 
 class SaveCrossword extends StatefulWidget {
   final String path;
-  final String imageName;
 
-  const SaveCrossword({Key? key, required this.path, required this.imageName})
-      : super(key: key);
+  const SaveCrossword({Key? key, required this.path}) : super(key: key);
 
   @override
   State<SaveCrossword> createState() => _SaveCrossword();
@@ -50,12 +48,39 @@ class _SaveCrossword extends State<SaveCrossword> {
               foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
             ),
             onPressed: () async {
-              saveImage(widget.path, myController.text);
-              Navigator.pop(context, true);
+              String photoName = myController.text;
+              if (photoName.isEmpty) {
+                showEmptyNameAlert(context);
+              } else {
+                saveImage(widget.path, myController.text);
+                Navigator.pop(context, true);
+              }
             },
             child: const Text('Zapisz zdjęcie'),
           )
         ]));
+  }
+
+  void showEmptyNameAlert(BuildContext context) {
+    Widget okButton = TextButton(
+      child: const Text("OK"),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+    );
+
+    AlertDialog alert = AlertDialog(
+      title: const Text("Nie udało się zapisać krzyżówki!"),
+      content: const Text("Nazwa krzyżówki nie może być pusta"),
+      actions: [okButton],
+    );
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
   }
 
   saveImage(String path, String photoName) async {
