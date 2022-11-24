@@ -121,11 +121,7 @@ class MyCrosswordsState extends State<MyCrosswords> {
       flex: 300,
       child: IconButton(
         onPressed: () {
-          setState(() {
-            photos.remove(photo);
-          });
-          // removing crossword also from database
-          removeImage(photo.id!);
+          showDeletionAlert(context, photo);
         },
         icon: const Icon(
           Icons.delete,
@@ -133,6 +129,37 @@ class MyCrosswordsState extends State<MyCrosswords> {
           color: Colors.red,
         ),
       ),
+    );
+  }
+
+  void showDeletionAlert(BuildContext context, Photo photo) {
+    Widget okButton = TextButton(
+      child: const Text("Usuń"),
+      onPressed: () {
+        setState(() {
+          photos.remove(photo);
+        });
+        removeImage(photo.id!);
+        Navigator.pop(context);
+      },
+    );
+    Widget cancelButton = TextButton(
+      child: const Text("Anuluj"),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+    );
+
+    AlertDialog alert = AlertDialog(
+      title: const Text("Czy na pewno chcesz usunąć krzyżówkę?"),
+      actions: [okButton, cancelButton],
+    );
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
     );
   }
 }
