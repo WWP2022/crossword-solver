@@ -30,7 +30,7 @@ class LoggingView extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               signInText(),
-              idInput(),
+              idLoginInput(),
               loginButton(),
               orText(),
               registerButton(),
@@ -55,7 +55,7 @@ class LoggingView extends StatelessWidget {
     );
   }
 
-  Container idInput() {
+  Container idLoginInput() {
     return Container(
       margin: const EdgeInsets.only(top: 10, left: 20, right: 20),
       child: TextField(
@@ -159,6 +159,7 @@ class LoggingView extends StatelessWidget {
   SnackBar userNotExistsSnackBar(String error) {
     return SnackBar(
         behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.red,
         content: Text(error)
     );
   }
@@ -166,6 +167,7 @@ class LoggingView extends StatelessWidget {
   SnackBar serverErrorSnackBar(String statusCode) {
     return SnackBar(
         behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.red,
         content: Text("Error! Status code: $statusCode")
     );
   }
