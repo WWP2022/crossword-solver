@@ -5,39 +5,6 @@ import 'package:flutter/material.dart';
 
 import '../util/loading_page_util.dart';
 
-// class MyAccount extends StatelessWidget {
-//   const MyAccount({super.key});
-//
-//   static const TextStyle optionStyle =
-//       TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     // return FutureBuilder(
-//     //   future: PrefsUtil.getUserId(),
-//     //   builder: (context, snap) {
-//     //     if (snap.hasData)
-//     //   }
-//     // );
-//     return Scaffold(
-//       body: userIdText(),
-//     );
-//   }
-//
-//   Container userIdText() {
-//
-//     final userId = PrefsUtil.getUserId().toString();
-//
-//     return Container(
-//       margin: const EdgeInsets.only(top: 10),
-//       child: Text(
-//           userId,
-//           style: optionStyle
-//       ),
-//     );
-//   }
-// }
-
 class MyAccount extends StatefulWidget {
   const MyAccount({super.key});
 
