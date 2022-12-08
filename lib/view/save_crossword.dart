@@ -1,9 +1,10 @@
 import 'dart:io';
 
-import 'package:crossword_solver/database/photoRepository.dart';
+import 'package:crossword_solver/database/crosswordInfoRepository.dart';
+import 'package:crossword_solver/util/prefs_util.dart';
 import 'package:flutter/material.dart';
 
-import '../model/photo.dart';
+import '../model/crossword_info.dart';
 
 class SaveCrossword extends StatefulWidget {
   final String path;
@@ -26,7 +27,7 @@ class _SaveCrossword extends State<SaveCrossword> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: const Text('Zdjęcie nierozwiązanej krzyżówki')),
+        appBar: AppBar(title: const Text('Zdjęcie rozwiązanej krzyżówki')),
         body: Column(children: <Widget>[
           SizedBox(
             width: 300,
@@ -52,7 +53,7 @@ class _SaveCrossword extends State<SaveCrossword> {
               if (photoName.isEmpty) {
                 showEmptyNameAlert(context);
               } else {
-                saveImage(widget.path, myController.text);
+                saveImage(123, widget.path, photoName, await PrefsUtil.getUserId());
                 Navigator.pop(context, true);
               }
             },
@@ -83,9 +84,16 @@ class _SaveCrossword extends State<SaveCrossword> {
     );
   }
 
-  saveImage(String path, String photoName) async {
-    PhotoRepository photoRepository = PhotoRepository();
-    Photo photo = Photo(path: path, name: photoName, date: DateTime.now());
-    photoRepository.insertPhoto(photo);
+  void saveImage(int id, String path, String photoName, String userId) async {
+    CrosswordInfoRepository photoRepository = CrosswordInfoRepository();
+    CrosswordInfo photo = CrosswordInfo(
+        id: id,
+        path: path,
+        crosswordName: photoName,
+        timestamp: DateTime.now(),
+        userId: userId,
+        status: "new"
+    );
+    photoRepository.insertCrosswordInfo(photo);
   }
 }

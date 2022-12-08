@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:crossword_solver/model/photo.dart';
+import 'package:crossword_solver/model/crossword_info.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -27,12 +27,15 @@ class CrosswordDatabase {
   }
 
   Future _createDB(Database db, int version) async {
+    print("creating database");
     await db.execute(
-        'CREATE TABLE $photoTable('
-            '${PhotoFields.id} INTEGER PRIMARY KEY,'
-            '${PhotoFields.path}  TEXT,'
-            '${PhotoFields.name}  TEXT,'
-            '${PhotoFields.date}  TEXT)'
+        'CREATE TABLE $crosswordInfoTable('
+            '${CrosswordInfoFields.id} INTEGER PRIMARY KEY,'
+            '${CrosswordInfoFields.path}  TEXT,'
+            '${CrosswordInfoFields.crosswordName}  TEXT,'
+            '${CrosswordInfoFields.timestamp}  TEXT,'
+            '${CrosswordInfoFields.userId}  TEXT,'
+            '${CrosswordInfoFields.status}  TEXT)'
     );
   }
 
