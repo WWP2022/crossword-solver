@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
-import '../database/crosswordInfoRepository.dart';
+import '../database/crossword_info_repository.dart';
 import '../model/crossword_info.dart';
 
 class MyCrosswords extends StatefulWidget {
