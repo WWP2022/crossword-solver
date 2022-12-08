@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
-import 'package:crossword_solver/database/crosswordInfoRepository.dart';
+import 'package:crossword_solver/database/crossword_info_repository.dart';
 import 'package:crossword_solver/model/crossword_info.dart';
 import 'package:crossword_solver/util/http_util.dart';
 import 'package:crossword_solver/util/prefs_util.dart';
@@ -138,11 +138,6 @@ class TakePictureScreenState extends State<TakePictureScreen> {
       String croppedImagePath = await cropImage(imageFromGallery);
       await uploadAndSaveUnprocessedImage(croppedImagePath);
 
-      // TODO
-      // alert ze krzyzowka wyslana na serwer albo ze sie nie udalo
-      // utworzenie watku do sprawdzania statusu
-      // TODO
-
       navigateToApp(context);
     }
   }
@@ -158,11 +153,6 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 
       String croppedImagePath = await cropImage(imageFromCamera);
       await uploadAndSaveUnprocessedImage(croppedImagePath);
-
-      // TODO
-      // alert ze krzyzowka wyslana na serwer albo ze sie nie udalo
-      // utworzenie watku do sprawdzania statusu
-      // TODO
 
       navigateToApp(context);
     } catch (e) {
@@ -189,12 +179,11 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 
   Future<void> uploadAndSaveUnprocessedImage(String imagePath) async {
     String userId = await PrefsUtil.getUserId();
-    print("imagePath: $imagePath");
+
     var response = await sendImageToServer(userId, imagePath);
 
     var crosswordId = response['id'];
     var crosswordName = response['crossword_name'];
-    print("crossword_id: $crosswordId, crossword_name: $crosswordName");
 
     saveUnprocessedImageInDatabase(
         crosswordId,
@@ -210,27 +199,34 @@ class TakePictureScreenState extends State<TakePictureScreen> {
         File(imagePath)
     );
 
+    var body = jsonDecode(response.body);
+
     if (response.statusCode == 200) {
-      print(jsonDecode(response.body));
       print('upload sucess');
+
+      // TODO
+      // alert ze krzyzowka wyslana na serwer albo ze sie nie udalo
+      // utworzenie watku do sprawdzania statusu
+      // TODO
+
     } else {
       print("Error ${response.statusCode}");
     }
-    var body = jsonDecode(response.body);
+
     return body;
   }
 
-  void saveUnprocessedImageInDatabase(int id, String path, String photoName, String userId) async {
-    CrosswordInfoRepository photoRepository = CrosswordInfoRepository();
-    CrosswordInfo photo = CrosswordInfo(
+  void saveUnprocessedImageInDatabase(int id, String path, String crosswordName, String userId) async {
+    CrosswordInfoRepository crosswordInfoRepository = CrosswordInfoRepository();
+    CrosswordInfo crosswordInfo = CrosswordInfo(
         id: id,
         path: path,
-        crosswordName: photoName,
+        crosswordName: crosswordName,
         timestamp: DateTime.now(),
         userId: userId,
         status: "new"
     );
-    photoRepository.insertCrosswordInfo(photo);
+    crosswordInfoRepository.insertCrosswordInfo(crosswordInfo);
   }
 
   void navigateToApp(context) {

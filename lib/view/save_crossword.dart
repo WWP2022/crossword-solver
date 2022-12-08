@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:crossword_solver/database/crosswordInfoRepository.dart';
+import 'package:crossword_solver/database/crossword_info_repository.dart';
 import 'package:crossword_solver/util/prefs_util.dart';
 import 'package:flutter/material.dart';
 
@@ -84,16 +84,16 @@ class _SaveCrossword extends State<SaveCrossword> {
     );
   }
 
-  void saveImage(int id, String path, String photoName, String userId) async {
-    CrosswordInfoRepository photoRepository = CrosswordInfoRepository();
-    CrosswordInfo photo = CrosswordInfo(
+  void saveImage(int id, String path, String crosswordName, String userId) async {
+    CrosswordInfoRepository crosswordInfoRepository = CrosswordInfoRepository();
+    CrosswordInfo crosswordInfo = CrosswordInfo(
         id: id,
         path: path,
-        crosswordName: photoName,
+        crosswordName: crosswordName,
         timestamp: DateTime.now(),
         userId: userId,
         status: "new"
     );
-    photoRepository.insertCrosswordInfo(photo);
+    crosswordInfoRepository.insertCrosswordInfo(crosswordInfo);
   }
 }

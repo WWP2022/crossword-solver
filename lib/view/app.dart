@@ -1,4 +1,3 @@
-import 'package:crossword_solver/solveCrossword/crossword_solver.dart';
 import 'package:crossword_solver/view/my_account.dart';
 import 'package:crossword_solver/view/my_question_database.dart';
 import 'package:crossword_solver/view/solve_crossword.dart';
@@ -37,7 +36,6 @@ class _AppViewState extends State<AppView> {
     const MyQuestionDatabase(),
     const MyCrosswords(),
     const MyAccount(),
-    const CrosswordSolverWidget()
   ];
 
   void _onItemTapped(int index) {
@@ -51,8 +49,6 @@ class _AppViewState extends State<AppView> {
         case 2: {_title = "Moje krzyżówki";}
         break;
         case 3: {_title = "Moje konto";}
-        break;
-        case 4: {_title = "???";} // TODO usunięcie tego widoku, jest niepotrzebny
         break;
       }
     });
@@ -96,10 +92,6 @@ class _AppViewState extends State<AppView> {
               BottomNavigationBarItem(
                 icon: Icon(Icons.person),
                 label: 'Moje konto',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.newspaper),
-                label: 'Rozwiązana krzyżówka',
               ),
             ],
             fixedColor: Colors.indigo,

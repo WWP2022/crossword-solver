@@ -15,8 +15,11 @@ class HttpUtil {
     var body = {'user_id': userId};
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
 
-    var response =
-    await http.post(url, headers: headers, body: jsonEncode(body));
+    var response = await http.post(
+        url,
+        headers: headers,
+        body: jsonEncode(body)
+    );
 
     return response;
   }
@@ -33,7 +36,6 @@ class HttpUtil {
       File imageFile
   ) async {
     var url = Uri.http(baseUrl, '/api/solver');
-
     var request = http.MultipartRequest('POST', url);
 
     var stream = http.ByteStream(DelegatingStream(imageFile.openRead()));
@@ -45,11 +47,9 @@ class HttpUtil {
         filename: basename(imageFile.path)
     );
 
-    request.files.add(image);
-
-
     var date = DateFormat("y-MMMM-d H:m:s").format(DateTime.now());
-    print(date);
+
+    request.files.add(image);
     request.fields['user_id'] = userId;
     request.fields['timestamp'] = date;
 
