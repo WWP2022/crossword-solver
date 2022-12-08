@@ -1,9 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:ui';
 
+import 'package:crossword_solver/util/http_util.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 import '../util/prefs_util.dart';
 import 'app.dart';
@@ -99,24 +98,9 @@ class LoggingView extends StatelessWidget {
   }
 
   Future<void> login(BuildContext context, String userId) async {
-
-    var body = {
-      'user_id': userId
-    };
-    var url = Uri.https(
-        'crossword-solver.theliver.pl',
-        '/api/login'
-    );
-    var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
-
-    var response = await http.post(
-        url,
-        headers: headers,
-        body: jsonEncode(body)
-    );
+    var response = await HttpUtil.userLogin(userId);
 
     var status = response.statusCode;
-
     if (status == 200) {
       var jsonResponse = jsonDecode(response.body) as Map<String, dynamic>;
 
@@ -136,15 +120,10 @@ class LoggingView extends StatelessWidget {
   }
 
   Future<void> register(context) async {
-    var url = Uri.https(
-        'crossword-solver.theliver.pl',
-        '/api/register',
-    );
+    var response = await HttpUtil.userRegister();
 
-    var response = await http.get(url);
     var status = response.statusCode;
-
-    if (status == 200) {
+    if (status == 201) {
       var jsonResponse = jsonDecode(response.body) as Map<String, dynamic>;
       var userId = jsonResponse['user_id'];
 
@@ -175,7 +154,7 @@ class LoggingView extends StatelessWidget {
   void navigateToApp(context) {
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (context) => App()),
+      MaterialPageRoute(builder: (context) => const App()),
           (Route<dynamic> route) => false,
     );
   }
