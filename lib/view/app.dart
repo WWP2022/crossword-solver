@@ -16,20 +16,21 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       title: _title,
-      home: MyStatefulWidget(),
+      home: AppView(),
     );
   }
 }
 
-class MyStatefulWidget extends StatefulWidget {
-  const MyStatefulWidget({super.key});
+class AppView extends StatefulWidget {
+  const AppView({super.key});
 
   @override
-  State<MyStatefulWidget> createState() => _MyStatefulWidgetState();
+  State<AppView> createState() => _AppViewState();
 }
 
-class _MyStatefulWidgetState extends State<MyStatefulWidget> {
+class _AppViewState extends State<AppView> {
   int _selectedIndex = 0;
+  String _title = "Rozwiąż krzyżówkę";
 
   static final List<Widget> _widgetOptions = <Widget>[
     const SolveCrossword(),
@@ -42,6 +43,18 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
+      switch(_selectedIndex) {
+        case 0: {_title = "Rozwiąż krzyżówkę";}
+        break;
+        case 1: {_title = "Moja baza pytań";}
+        break;
+        case 2: {_title = "Moje krzyżówki";}
+        break;
+        case 3: {_title = "Moje konto";}
+        break;
+        case 4: {_title = "???";} // TODO usunięcie tego widoku, jest niepotrzebny
+        break;
+      }
     });
   }
 
@@ -54,7 +67,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
 
     return Scaffold(
         appBar: AppBar(
-          title: const Text('Rozwiąż krzyżówkę'),
+          title: Text(_title),
         ),
         body: Center(
           child: _widgetOptions.elementAt(_selectedIndex),
@@ -78,7 +91,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.school),
-                label: 'Moje rozwiązane krzyżówki',
+                label: 'Moje krzyżówki',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.person),
