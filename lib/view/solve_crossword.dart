@@ -1,8 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
-import 'package:crossword_solver/view/save_crossword.dart';
+import 'package:crossword_solver/database/crosswordInfoRepository.dart';
+import 'package:crossword_solver/model/crossword_info.dart';
+import 'package:crossword_solver/util/http_util.dart';
+import 'package:crossword_solver/util/prefs_util.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -11,6 +15,8 @@ import 'package:path/path.dart';
 import '../util/loading_page_util.dart';
 import '../util/modify_image_util.dart';
 import '../util/path_util.dart';
+import 'app.dart';
+
 
 late CameraDescription cameraDescription;
 
@@ -98,18 +104,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
               child: FloatingActionButton(
                   child: const Icon(Icons.photo),
                   onPressed: () async {
-                    PickedFile? pickedFile = await ImagePicker().getImage(
-                      source: ImageSource.gallery,
-                      maxWidth: 1800,
-                      maxHeight: 1800,
-                    );
-                    if (pickedFile != null) {
-                      XFile imageFromGallery = XFile(pickedFile.path);
-                      String path = await cropImage(imageFromGallery);
-                      await Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => SaveCrossword(path: path),
-                      ));
-                    }
+                    await choosePhoto(context);
                   }),
             ),
           ),
@@ -120,29 +115,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
               child: FloatingActionButton(
                 child: const Icon(Icons.camera_alt),
                 onPressed: () async {
-                  try {
-                    await _initializeControllerFuture;
-                    XFile imageFromCamera = await _controller.takePicture();
-
-                    // TODO this is only for tests cpp code
-                    // String duplicateFilePath = await PathUtil.localPath;
-                    // String fileName = basename(image.name);
-                    // String path = '$duplicateFilePath/$fileName';
-                    // FFIBridge _ffiBridge = FFIBridge();
-                    // print(_ffiBridge.imageProcessing(path));
-                    //TODO this is only for tests cpp code
-
-                    if (!mounted) {
-                      return;
-                    }
-                    String path = await cropImage(imageFromCamera);
-                    await Navigator.of(context).push(
-                      MaterialPageRoute(
-                          builder: (context) => SaveCrossword(path: path)),
-                    );
-                  } catch (e) {
-                    print(e);
-                  }
+                  await takePhoto(context);
                 },
               ),
             ),
@@ -153,11 +126,55 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     );
   }
 
+  Future<void> choosePhoto(BuildContext context) async {
+    PickedFile? pickedFile = await ImagePicker().getImage(
+      source: ImageSource.gallery,
+      maxWidth: 1800,
+      maxHeight: 1800,
+    );
+    if (pickedFile != null) {
+      XFile imageFromGallery = XFile(pickedFile.path);
+
+      String croppedImagePath = await cropImage(imageFromGallery);
+      await uploadAndSaveUnprocessedImage(croppedImagePath);
+
+      // TODO
+      // alert ze krzyzowka wyslana na serwer albo ze sie nie udalo
+      // utworzenie watku do sprawdzania statusu
+      // TODO
+
+      navigateToApp(context);
+    }
+  }
+
+  Future<void> takePhoto(BuildContext context) async {
+    try {
+      await _initializeControllerFuture;
+      XFile imageFromCamera = await _controller.takePicture();
+
+      if (!mounted) {
+        return;
+      }
+
+      String croppedImagePath = await cropImage(imageFromCamera);
+      await uploadAndSaveUnprocessedImage(croppedImagePath);
+
+      // TODO
+      // alert ze krzyzowka wyslana na serwer albo ze sie nie udalo
+      // utworzenie watku do sprawdzania statusu
+      // TODO
+
+      navigateToApp(context);
+    } catch (e) {
+      print(e);
+    }
+  }
+
   Future<String> cropImage(XFile image) async {
     String duplicateFilePath = await PathUtil.localPath;
     String fileName = basename(image.name);
     final path = '$duplicateFilePath/$fileName';
-    await image.saveTo('$duplicateFilePath/$fileName');
+    await image.saveTo(path);
 
     File savedImage = File(path);
     File compressedImage = await ModifyImageUtil.compress(image: savedImage);
@@ -166,6 +183,59 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 
     XFile processedImage = XFile.fromData(await croppedImage!.readAsBytes());
     await processedImage.saveTo(path);
+
     return path;
+  }
+
+  Future<void> uploadAndSaveUnprocessedImage(String imagePath) async {
+    String userId = await PrefsUtil.getUserId();
+    print("imagePath: $imagePath");
+    var response = await sendImageToServer(userId, imagePath);
+
+    var crosswordId = response['id'];
+    var crosswordName = response['crossword_name'];
+    print("crossword_id: $crosswordId, crossword_name: $crosswordName");
+
+    saveUnprocessedImageInDatabase(
+        crosswordId,
+        imagePath,
+        crosswordName,
+        userId
+    );
+  }
+
+  Future<dynamic> sendImageToServer(String userId, String imagePath) async {
+    var response = await HttpUtil.crosswordSend(
+        userId,
+        File(imagePath)
+    );
+
+    if (response.statusCode == 200) {
+      print(jsonDecode(response.body));
+      print('upload sucess');
+    } else {
+      print("Error ${response.statusCode}");
+    }
+    var body = jsonDecode(response.body);
+    return body;
+  }
+
+  void saveUnprocessedImageInDatabase(int id, String path, String photoName, String userId) async {
+    CrosswordInfoRepository photoRepository = CrosswordInfoRepository();
+    CrosswordInfo photo = CrosswordInfo(
+        id: id,
+        path: path,
+        crosswordName: photoName,
+        timestamp: DateTime.now(),
+        userId: userId,
+        status: "new"
+    );
+    photoRepository.insertCrosswordInfo(photo);
+  }
+
+  void navigateToApp(context) {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (context) => const App(),
+    ));
   }
 }

@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
-import '../database/photoRepository.dart';
-import '../model/photo.dart';
+import '../database/crosswordInfoRepository.dart';
+import '../model/crossword_info.dart';
 
 class MyCrosswords extends StatefulWidget {
   const MyCrosswords({super.key});
@@ -17,7 +17,7 @@ class MyCrosswords extends StatefulWidget {
 }
 
 class MyCrosswordsState extends State<MyCrosswords> {
-  late List<Photo> photos;
+  late List<CrosswordInfo> photos;
 
   @override
   void initState() {
@@ -30,25 +30,25 @@ class MyCrosswordsState extends State<MyCrosswords> {
   }
 
   getPhotos() async {
-    PhotoRepository photoRepository = PhotoRepository();
-    photos = await photoRepository.getAllPhotos();
+    CrosswordInfoRepository photoRepository = CrosswordInfoRepository();
+    photos = await photoRepository.getAllCrosswordsInfo();
     setState(() {});
   }
 
-  Future<List<Photo>> getImages() async {
-    PhotoRepository photoRepository = PhotoRepository();
-    List<Photo> photos = await photoRepository.getAllPhotos();
+  Future<List<CrosswordInfo>> getImages() async {
+    CrosswordInfoRepository photoRepository = CrosswordInfoRepository();
+    List<CrosswordInfo> photos = await photoRepository.getAllCrosswordsInfo();
     return photos;
   }
 
   void removeImage(int id) async {
-    PhotoRepository photoRepository = PhotoRepository();
-    await photoRepository.deletePhoto(id);
+    CrosswordInfoRepository photoRepository = CrosswordInfoRepository();
+    await photoRepository.deleteCrosswordInfo(id);
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Photo>>(
+    return FutureBuilder<List<CrosswordInfo>>(
         future: getImages(),
         builder: (context, images) {
           if (images.hasData) {
@@ -64,7 +64,7 @@ class MyCrosswordsState extends State<MyCrosswords> {
         });
   }
 
-  Container createCrosswordList(BuildContext context, Photo photo) {
+  Container createCrosswordList(BuildContext context, CrosswordInfo photo) {
     Image image = Image.file(File(photo.path));
 
     return Container(
@@ -75,13 +75,13 @@ class MyCrosswordsState extends State<MyCrosswords> {
           const Expanded(flex: 25, child: SizedBox()),
           buildClickableCrosswordName(photo, image),
           const Expanded(flex: 25, child: SizedBox()),
-          buildDateInProperFormat(photo.date),
+          buildDateInProperFormat(photo.timestamp),
           const Expanded(flex: 25, child: SizedBox()),
           buildRemoveButton(photo),
         ]));
   }
 
-  Expanded buildClickableImage(Photo photo, Image image) {
+  Expanded buildClickableImage(CrosswordInfo photo, Image image) {
     return Expanded(
         flex: 300,
         child: GestureDetector(
@@ -96,11 +96,11 @@ class MyCrosswordsState extends State<MyCrosswords> {
         ));
   }
 
-  Expanded buildClickableCrosswordName(Photo photo, Image image) {
+  Expanded buildClickableCrosswordName(CrosswordInfo photo, Image image) {
     return Expanded(
         flex: 300,
         child: GestureDetector(
-          child: Text(photo.name),
+          child: Text(photo.crosswordName),
           onTap: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) {
               return ModifyCrosswordNameScreen(photo, image);
@@ -116,7 +116,7 @@ class MyCrosswordsState extends State<MyCrosswords> {
     return Expanded(flex: 300, child: Text(format.format(dateTime)));
   }
 
-  Expanded buildRemoveButton(Photo photo) {
+  Expanded buildRemoveButton(CrosswordInfo photo) {
     return Expanded(
       flex: 300,
       child: IconButton(
@@ -132,7 +132,7 @@ class MyCrosswordsState extends State<MyCrosswords> {
     );
   }
 
-  void showDeletionAlert(BuildContext context, Photo photo) {
+  void showDeletionAlert(BuildContext context, CrosswordInfo photo) {
     Widget okButton = TextButton(
       child: const Text("Usuń"),
       onPressed: () {
@@ -165,7 +165,7 @@ class MyCrosswordsState extends State<MyCrosswords> {
 }
 
 class ModifyCrosswordNameScreen extends StatefulWidget {
-  final Photo photo;
+  final CrosswordInfo photo;
   final Image image;
 
   const ModifyCrosswordNameScreen(this.photo, this.image, {super.key});
@@ -181,7 +181,7 @@ class ModifyCrosswordNameScreenState extends State<ModifyCrosswordNameScreen> {
   @override
   initState() {
     super.initState();
-    modifyCrosswordNameController.text = widget.photo.name;
+    modifyCrosswordNameController.text = widget.photo.crosswordName;
   }
 
   @override
@@ -231,7 +231,7 @@ class ModifyCrosswordNameScreenState extends State<ModifyCrosswordNameScreen> {
                         String newCrosswordName =
                             modifyCrosswordNameController.text;
                         if (await isCrosswordNameWrong(
-                            widget.photo.name, newCrosswordName)) {
+                            widget.photo.crosswordName, newCrosswordName)) {
                           showEmptyNameAlert(context);
                         } else {
                           saveCrosswordName(widget.photo, newCrosswordName);
@@ -289,17 +289,17 @@ class ModifyCrosswordNameScreenState extends State<ModifyCrosswordNameScreen> {
     );
   }
 
-  void saveCrosswordName(Photo photo, String text) {
-    PhotoRepository photoRepository = PhotoRepository();
-    photo.name = text;
-    photoRepository.updatePhoto(photo);
+  void saveCrosswordName(CrosswordInfo photo, String text) {
+    CrosswordInfoRepository photoRepository = CrosswordInfoRepository();
+    photo.crosswordName = text;
+    photoRepository.updateCrosswordInfo(photo);
   }
 
   Future<bool> isCrosswordNameWrong(
       String oldCrosswordName, String newCrosswordName) async {
-    PhotoRepository photoRepository = PhotoRepository();
-    List<Photo> photos = await photoRepository.getAllPhotos();
-    if (photos.map((photo) => photo.name).contains(newCrosswordName)) {
+    CrosswordInfoRepository photoRepository = CrosswordInfoRepository();
+    List<CrosswordInfo> photos = await photoRepository.getAllCrosswordsInfo();
+    if (photos.map((photo) => photo.crosswordName).contains(newCrosswordName)) {
       return true;
     }
     if (newCrosswordName.isEmpty) {

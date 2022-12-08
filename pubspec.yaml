@@ -80,6 +80,7 @@ flutter:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
   assets:
+    - assets/images/crossword.jpg
     - assets/images/panorama_1.png
     - assets/images/crossword_big_pol.jpg
 
