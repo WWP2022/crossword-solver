@@ -1,9 +1,10 @@
+import 'dart:async';
+
 import 'package:crossword_solver/util/prefs_util.dart';
 import 'package:crossword_solver/view/app.dart';
 import 'package:crossword_solver/view/logging_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'dart:async';
 
 import '../util/loading_page_util.dart';
 
@@ -14,7 +15,7 @@ class StartApp extends StatefulWidget {
   StartAppState createState() => StartAppState();
 }
 
-class StartAppState extends State<StartApp>{
+class StartAppState extends State<StartApp> {
   late Future<String> userId;
 
   @override

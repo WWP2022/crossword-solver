@@ -51,7 +51,8 @@ class CrosswordInfo {
     DateTime? timestamp,
     String? userId,
     String? status,
-  }) => CrosswordInfo(
+  }) =>
+      CrosswordInfo(
         id: id ?? this.id,
         path: path ?? this.path,
         crosswordName: crosswordName ?? this.crosswordName,
@@ -71,6 +72,5 @@ class CrosswordInfo {
       crosswordName: json[CrosswordInfoFields.crosswordName] as String,
       timestamp: DateTime.parse(json[CrosswordInfoFields.timestamp] as String),
       userId: json[CrosswordInfoFields.userId] as String,
-      status: json[CrosswordInfoFields.status] as String
-  );
+      status: json[CrosswordInfoFields.status] as String);
 }

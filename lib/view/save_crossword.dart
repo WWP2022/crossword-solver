@@ -53,7 +53,8 @@ class _SaveCrossword extends State<SaveCrossword> {
               if (photoName.isEmpty) {
                 showEmptyNameAlert(context);
               } else {
-                saveImage(123, widget.path, photoName, await PrefsUtil.getUserId());
+                saveImage(
+                    123, widget.path, photoName, await PrefsUtil.getUserId());
                 Navigator.pop(context, true);
               }
             },
@@ -84,7 +85,8 @@ class _SaveCrossword extends State<SaveCrossword> {
     );
   }
 
-  void saveImage(int id, String path, String crosswordName, String userId) async {
+  void saveImage(
+      int id, String path, String crosswordName, String userId) async {
     CrosswordInfoRepository crosswordInfoRepository = CrosswordInfoRepository();
     CrosswordInfo crosswordInfo = CrosswordInfo(
         id: id,
@@ -92,8 +94,7 @@ class _SaveCrossword extends State<SaveCrossword> {
         crosswordName: crosswordName,
         timestamp: DateTime.now(),
         userId: userId,
-        status: "new"
-    );
+        status: "new");
     crosswordInfoRepository.insertCrosswordInfo(crosswordInfo);
   }
 }

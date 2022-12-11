@@ -49,7 +49,7 @@ class CrosswordInfoRepository {
   Future<int> deleteCrosswordInfo(int id) async {
     final db = await CrosswordDatabase.instance.database;
 
-    return await db
-        .delete(tableName, where: '${CrosswordInfoFields.id} = ?', whereArgs: [id]);
+    return await db.delete(tableName,
+        where: '${CrosswordInfoFields.id} = ?', whereArgs: [id]);
   }
 }

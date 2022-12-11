@@ -11,7 +11,7 @@ class LoggingView extends StatelessWidget {
   const LoggingView({super.key});
 
   static const TextStyle textStyle =
-    TextStyle(fontSize: 20, fontWeight: FontWeight.bold);
+      TextStyle(fontSize: 20, fontWeight: FontWeight.bold);
 
   static ButtonStyle buttonStyle = ElevatedButton.styleFrom(
     minimumSize: const Size.fromHeight(40),
@@ -25,17 +25,17 @@ class LoggingView extends StatelessWidget {
     return MaterialApp(
       home: Builder(
         builder: (context) => Scaffold(
-          body: Center(child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              signInText(),
-              idLoginInput(),
-              loginButton(),
-              orText(),
-              registerButton(),
-            ],
-          ))
-        ),
+            body: Center(
+                child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            signInText(),
+            idLoginInput(),
+            loginButton(),
+            orText(),
+            registerButton(),
+          ],
+        ))),
       ),
     );
   }
@@ -72,28 +72,32 @@ class LoggingView extends StatelessWidget {
   Container loginButton() {
     return Container(
       margin: const EdgeInsets.only(top: 10, left: 20, right: 20),
-      child: Builder(builder: (context) => ElevatedButton(
-        style: buttonStyle,
-        onPressed: () => login(context, idController.text.toString()),
-        child: const Text(
-          'Zaloguj się',
-          style: TextStyle(fontSize: 15),
+      child: Builder(
+        builder: (context) => ElevatedButton(
+          style: buttonStyle,
+          onPressed: () => login(context, idController.text.toString()),
+          child: const Text(
+            'Zaloguj się',
+            style: TextStyle(fontSize: 15),
+          ),
         ),
-      ),),
+      ),
     );
   }
 
   Container registerButton() {
     return Container(
       margin: const EdgeInsets.only(top: 10, left: 20, right: 20),
-      child: Builder(builder: (context) => ElevatedButton(
-        style: buttonStyle,
-        onPressed: () => register(context),
-        child: const Text(
-          'Zarejestruj się',
-          style: TextStyle(fontSize: 15),
+      child: Builder(
+        builder: (context) => ElevatedButton(
+          style: buttonStyle,
+          onPressed: () => register(context),
+          child: const Text(
+            'Zarejestruj się',
+            style: TextStyle(fontSize: 15),
+          ),
         ),
-      ),),
+      ),
     );
   }
 
@@ -139,23 +143,21 @@ class LoggingView extends StatelessWidget {
     return SnackBar(
         behavior: SnackBarBehavior.floating,
         backgroundColor: Colors.red,
-        content: Text(error)
-    );
+        content: Text(error));
   }
 
   SnackBar serverErrorSnackBar(String statusCode) {
     return SnackBar(
         behavior: SnackBarBehavior.floating,
         backgroundColor: Colors.red,
-        content: Text("Error! Status code: $statusCode")
-    );
+        content: Text("Error! Status code: $statusCode"));
   }
 
   void navigateToApp(context) {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => const App()),
-          (Route<dynamic> route) => false,
+      (Route<dynamic> route) => false,
     );
   }
 }
