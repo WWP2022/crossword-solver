@@ -1,6 +1,5 @@
 import 'package:crossword_solver/util/prefs_util.dart';
 import 'package:crossword_solver/view/logging_view.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../util/loading_page_util.dart';
@@ -12,7 +11,7 @@ class MyAccount extends StatefulWidget {
   MyAccountState createState() => MyAccountState();
 }
 
-class MyAccountState extends State<MyAccount>{
+class MyAccountState extends State<MyAccount> {
   static const TextStyle optionStyle =
       TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
 
@@ -53,24 +52,23 @@ class MyAccountState extends State<MyAccount>{
   Container userIdText(String userId) {
     return Container(
       margin: const EdgeInsets.only(top: 10),
-      child: Text(
-          userId,
-          style: optionStyle
-      ),
+      child: Text(userId, style: optionStyle),
     );
   }
 
   Container logoutButton() {
     return Container(
       margin: const EdgeInsets.only(top: 10, left: 20, right: 20),
-      child: Builder(builder: (context) => ElevatedButton(
-        style: buttonStyle,
-        onPressed: () => logout(context),
-        child: const Text(
-          'Wyloguj się',
-          style: TextStyle(fontSize: 15),
+      child: Builder(
+        builder: (context) => ElevatedButton(
+          style: buttonStyle,
+          onPressed: () => logout(context),
+          child: const Text(
+            'Wyloguj się',
+            style: TextStyle(fontSize: 15),
+          ),
         ),
-      ),),
+      ),
     );
   }
 
@@ -83,7 +81,7 @@ class MyAccountState extends State<MyAccount>{
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => LoggingView()),
-          (Route<dynamic> route) => false,
+      (Route<dynamic> route) => false,
     );
   }
 }

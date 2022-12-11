@@ -28,15 +28,13 @@ class CrosswordDatabase {
 
   Future _createDB(Database db, int version) async {
     print("creating database");
-    await db.execute(
-        'CREATE TABLE $crosswordInfoTable('
-            '${CrosswordInfoFields.id} INTEGER PRIMARY KEY,'
-            '${CrosswordInfoFields.path}  TEXT,'
-            '${CrosswordInfoFields.crosswordName}  TEXT,'
-            '${CrosswordInfoFields.timestamp}  TEXT,'
-            '${CrosswordInfoFields.userId}  TEXT,'
-            '${CrosswordInfoFields.status}  TEXT)'
-    );
+    await db.execute('CREATE TABLE $crosswordInfoTable('
+        '${CrosswordInfoFields.id} INTEGER PRIMARY KEY,'
+        '${CrosswordInfoFields.path}  TEXT,'
+        '${CrosswordInfoFields.crosswordName}  TEXT,'
+        '${CrosswordInfoFields.timestamp}  TEXT,'
+        '${CrosswordInfoFields.userId}  TEXT,'
+        '${CrosswordInfoFields.status}  TEXT)');
   }
 
   Future close() async {

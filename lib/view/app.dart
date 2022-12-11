@@ -41,15 +41,27 @@ class _AppViewState extends State<AppView> {
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
-      switch(_selectedIndex) {
-        case 0: {_title = "Rozwiąż krzyżówkę";}
-        break;
-        case 1: {_title = "Moja baza pytań";}
-        break;
-        case 2: {_title = "Moje krzyżówki";}
-        break;
-        case 3: {_title = "Moje konto";}
-        break;
+      switch (_selectedIndex) {
+        case 0:
+          {
+            _title = "Rozwiąż krzyżówkę";
+          }
+          break;
+        case 1:
+          {
+            _title = "Moja baza pytań";
+          }
+          break;
+        case 2:
+          {
+            _title = "Moje krzyżówki";
+          }
+          break;
+        case 3:
+          {
+            _title = "Moje konto";
+          }
+          break;
       }
     });
   }

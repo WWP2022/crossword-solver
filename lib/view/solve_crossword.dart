@@ -17,7 +17,6 @@ import '../util/modify_image_util.dart';
 import '../util/path_util.dart';
 import 'app.dart';
 
-
 late CameraDescription cameraDescription;
 
 class SolveCrossword extends StatelessWidget {
@@ -186,18 +185,11 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     var crosswordName = response['crossword_name'];
 
     saveUnprocessedImageInDatabase(
-        crosswordId,
-        imagePath,
-        crosswordName,
-        userId
-    );
+        crosswordId, imagePath, crosswordName, userId);
   }
 
   Future<dynamic> sendImageToServer(String userId, String imagePath) async {
-    var response = await HttpUtil.crosswordSend(
-        userId,
-        File(imagePath)
-    );
+    var response = await HttpUtil.crosswordSend(userId, File(imagePath));
 
     var body = jsonDecode(response.body);
 
@@ -216,7 +208,8 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     return body;
   }
 
-  void saveUnprocessedImageInDatabase(int id, String path, String crosswordName, String userId) async {
+  void saveUnprocessedImageInDatabase(
+      int id, String path, String crosswordName, String userId) async {
     CrosswordInfoRepository crosswordInfoRepository = CrosswordInfoRepository();
     CrosswordInfo crosswordInfo = CrosswordInfo(
         id: id,
@@ -224,8 +217,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
         crosswordName: crosswordName,
         timestamp: DateTime.now(),
         userId: userId,
-        status: "new"
-    );
+        status: "new");
     crosswordInfoRepository.insertCrosswordInfo(crosswordInfo);
   }
 
