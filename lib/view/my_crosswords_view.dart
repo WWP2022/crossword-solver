@@ -35,17 +35,6 @@ class MyCrosswordsState extends State<MyCrosswords> {
     setState(() {});
   }
 
-  Future<List<CrosswordInfo>> getImages() async {
-    CrosswordInfoRepository photoRepository = CrosswordInfoRepository();
-    List<CrosswordInfo> photos = await photoRepository.getAllCrosswordsInfo();
-    return photos;
-  }
-
-  void removeImage(int id) async {
-    CrosswordInfoRepository photoRepository = CrosswordInfoRepository();
-    await photoRepository.deleteCrosswordInfo(id);
-  }
-
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<CrosswordInfo>>(
@@ -62,6 +51,12 @@ class MyCrosswordsState extends State<MyCrosswords> {
             return LoadingPageUtil.buildLoadingPage();
           }
         });
+  }
+
+  Future<List<CrosswordInfo>> getImages() async {
+    CrosswordInfoRepository photoRepository = CrosswordInfoRepository();
+    List<CrosswordInfo> photos = await photoRepository.getAllCrosswordsInfo();
+    return photos;
   }
 
   Container createCrosswordList(BuildContext context, CrosswordInfo photo) {
@@ -161,6 +156,11 @@ class MyCrosswordsState extends State<MyCrosswords> {
         return alert;
       },
     );
+  }
+
+  void removeImage(int id) async {
+    CrosswordInfoRepository photoRepository = CrosswordInfoRepository();
+    await photoRepository.deleteCrosswordInfo(id);
   }
 }
 
