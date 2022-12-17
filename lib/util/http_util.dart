@@ -2,17 +2,19 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:async/async.dart';
+import 'package:flutter/services.dart';
 import 'package:crossword_solver/model/crossword_clue.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../config/config.dart';
 
 class HttpUtil {
   static String baseUrl = Config.getBaseUrl();
 
-  static Future<http.Response> userLogin(String userId) async {
+  static Future<http.Response> loginUser(String userId) async {
     var url = Config.makeUriQuery(baseUrl, '/api/login');
     var body = {'user_id': userId};
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
@@ -23,22 +25,27 @@ class HttpUtil {
     return response;
   }
 
-  static Future<http.Response> userRegister() async {
+  static Future<http.Response> registerUser() async {
     var url = Config.makeUriQuery(baseUrl, '/api/register');
 
     var response = await http.post(url);
     return response;
   }
 
-  static Future<http.Response> crosswordSend(
-      String userId, File imageFile) async {
+  static Future<http.Response> sendCrossword(String userId, String imagePath) async {
     var url = Config.makeUriQuery(baseUrl, '/api/solver');
     var request = http.MultipartRequest('POST', url);
 
+    final byteData = await rootBundle.load('assets/images/crossword.jpg');
+    var imageFile = File('${(await getTemporaryDirectory()).path}/crossword.jpg');
+    imageFile = await imageFile.writeAsBytes(byteData.buffer
+        .asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
+
+    // var imageFile = File(imagePath);
     var stream = http.ByteStream(DelegatingStream(imageFile.openRead()));
     var length = await imageFile.length();
     var image = http.MultipartFile('image', stream, length,
-        filename: basename(imageFile.path));
+        filename: basename(imagePath));
 
     var date = DateFormat("y-MMMM-d H:m:s").format(DateTime.now());
 
@@ -48,6 +55,57 @@ class HttpUtil {
 
     var myRequest = await request.send();
     var response = await http.Response.fromStream(myRequest);
+
+    return response;
+  }
+
+  static Future<http.Response> getCrosswordStatus(String userId, String crosswordId) async {
+    var args = {
+      'user_id': userId,
+      'crossword_id': crosswordId
+    };
+    var url = Uri.http(baseUrl, '/api/crossword/status', args);
+    var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
+
+    var response = await http.get(
+        url,
+        headers: headers,
+    );
+
+    return response;
+  }
+
+  static Future<http.Response> getSolvedCrossword(String userId, String crosswordId) async {
+    var args = {
+      'user_id': userId,
+      'crossword_id': crosswordId
+    };
+    var url = Uri.http(baseUrl, '/api/crossword', args);
+    var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
+
+    var response = await http.get(
+      url,
+      headers: headers,
+    );
+
+    return response;
+  }
+
+  static Future<http.Response> updateCrossword(String userId, String crosswordId, String crosswordName, String isAccepted) async {
+    var url = Uri.http(baseUrl, '/api/login');
+    var body = {
+      'user_id': userId,
+      'crossword_id': crosswordId,
+      'crossword_name': crosswordName,
+      'is_accepted': isAccepted
+    };
+    var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
+
+    var response = await http.patch(
+        url,
+        headers: headers,
+        body: jsonEncode(body)
+    );
 
     return response;
   }

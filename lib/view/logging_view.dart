@@ -102,7 +102,7 @@ class LoggingView extends StatelessWidget {
   }
 
   Future<void> login(BuildContext context, String userId) async {
-    var response = await HttpUtil.userLogin(userId);
+    var response = await HttpUtil.loginUser(userId);
 
     var status = response.statusCode;
     if (status == 200) {
@@ -124,7 +124,7 @@ class LoggingView extends StatelessWidget {
   }
 
   Future<void> register(context) async {
-    var response = await HttpUtil.userRegister();
+    var response = await HttpUtil.registerUser();
 
     var status = response.statusCode;
     if (status == 201) {
