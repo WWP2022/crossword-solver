@@ -211,6 +211,14 @@ class TakePictureScreenState extends State<TakePictureScreen> {
       print(solvedImageFile);
       print(solvedImageFile.path);
 
+      saveImageBeforeAccept(
+          crosswordId,
+          solvedImageFile.path,
+          crosswordName,
+          userId,
+          status
+      );
+
       var snackBar = serverSolvedMessageSnackbar(
           context,
           responseAfterStatusCheck,
@@ -345,5 +353,18 @@ class TakePictureScreenState extends State<TakePictureScreen> {
       MaterialPageRoute(
           builder: (context) => SaveCrossword(path: path, id: id, name: name)),
     );
+  }
+
+  void saveImageBeforeAccept(
+      int id, String path, String crosswordName, String userId, String status) async {
+    CrosswordInfoRepository crosswordInfoRepository = CrosswordInfoRepository();
+    CrosswordInfo crosswordInfo = CrosswordInfo(
+        id: id,
+        path: path,
+        crosswordName: crosswordName,
+        timestamp: DateTime.now(),
+        userId: userId,
+        status: status);
+    await crosswordInfoRepository.insertCrosswordInfo(crosswordInfo);
   }
 }
