@@ -17,7 +17,7 @@ class MyCrosswords extends StatefulWidget {
 }
 
 class MyCrosswordsState extends State<MyCrosswords> {
-  late List<CrosswordInfo> photos;
+  late List<CrosswordInfo> crosswordsInfo;
 
   @override
   void initState() {
@@ -31,7 +31,7 @@ class MyCrosswordsState extends State<MyCrosswords> {
 
   getPhotos() async {
     CrosswordInfoRepository photoRepository = CrosswordInfoRepository();
-    photos = await photoRepository.getAllCrosswordsInfo();
+    crosswordsInfo = await photoRepository.getAllCrosswordsInfo();
     setState(() {});
   }
 
@@ -132,7 +132,7 @@ class MyCrosswordsState extends State<MyCrosswords> {
       child: const Text("Usuń"),
       onPressed: () {
         setState(() {
-          photos.remove(photo);
+          crosswordsInfo.remove(photo);
         });
         removeImage(photo.id!);
         Navigator.pop(context);
@@ -165,10 +165,10 @@ class MyCrosswordsState extends State<MyCrosswords> {
 }
 
 class ModifyCrosswordNameScreen extends StatefulWidget {
-  final CrosswordInfo photo;
+  final CrosswordInfo crosswordInfo;
   final Image image;
 
-  const ModifyCrosswordNameScreen(this.photo, this.image, {super.key});
+  const ModifyCrosswordNameScreen(this.crosswordInfo, this.image, {super.key});
 
   @override
   ModifyCrosswordNameScreenState createState() =>
@@ -181,7 +181,7 @@ class ModifyCrosswordNameScreenState extends State<ModifyCrosswordNameScreen> {
   @override
   initState() {
     super.initState();
-    modifyCrosswordNameController.text = widget.photo.crosswordName;
+    modifyCrosswordNameController.text = widget.crosswordInfo.crosswordName;
   }
 
   @override
@@ -231,10 +231,10 @@ class ModifyCrosswordNameScreenState extends State<ModifyCrosswordNameScreen> {
                         String newCrosswordName =
                             modifyCrosswordNameController.text;
                         if (await isCrosswordNameWrong(
-                            widget.photo.crosswordName, newCrosswordName)) {
+                            widget.crosswordInfo.crosswordName, newCrosswordName)) {
                           showEmptyNameAlert(context);
                         } else {
-                          saveCrosswordName(widget.photo, newCrosswordName);
+                          saveCrosswordName(widget.crosswordInfo, newCrosswordName);
                           Navigator.pop(context, true);
                         }
                       },
@@ -289,17 +289,17 @@ class ModifyCrosswordNameScreenState extends State<ModifyCrosswordNameScreen> {
     );
   }
 
-  void saveCrosswordName(CrosswordInfo photo, String text) {
-    CrosswordInfoRepository photoRepository = CrosswordInfoRepository();
-    photo.crosswordName = text;
-    photoRepository.updateCrosswordInfo(photo);
+  void saveCrosswordName(CrosswordInfo crosswordInfo, String text) {
+    CrosswordInfoRepository crosswordInfoRepository = CrosswordInfoRepository();
+    crosswordInfo.crosswordName = text;
+    crosswordInfoRepository.updateCrosswordInfo(crosswordInfo);
   }
 
   Future<bool> isCrosswordNameWrong(
       String oldCrosswordName, String newCrosswordName) async {
-    CrosswordInfoRepository photoRepository = CrosswordInfoRepository();
-    List<CrosswordInfo> photos = await photoRepository.getAllCrosswordsInfo();
-    if (photos.map((photo) => photo.crosswordName).contains(newCrosswordName)) {
+    CrosswordInfoRepository crosswordInfoRepository = CrosswordInfoRepository();
+    List<CrosswordInfo> crosswordsInfo = await crosswordInfoRepository.getAllCrosswordsInfo();
+    if (crosswordsInfo.map((crosswordInfo) => crosswordInfo.crosswordName).contains(newCrosswordName)) {
       return true;
     }
     if (newCrosswordName.isEmpty) {

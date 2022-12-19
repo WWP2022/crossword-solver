@@ -75,6 +75,7 @@ flutter:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
   assets:
+    - assets/images/39.png
     - assets/images/crossword.jpg
     - assets/images/crossword_small.png
 

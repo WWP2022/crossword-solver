@@ -17,7 +17,6 @@ import 'package:path_provider/path_provider.dart';
 import '../util/loading_page_util.dart';
 import '../util/modify_image_util.dart';
 import '../util/path_util.dart';
-import 'app.dart';
 
 late CameraDescription cameraDescription;
 
@@ -105,7 +104,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
               child: FloatingActionButton(
                   child: const Icon(Icons.photo),
                   onPressed: () async {
-                    await choosePhoto(context);
+                    await choosePhotoAndSolve(context);
                   }),
             ),
           ),
@@ -116,7 +115,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
               child: FloatingActionButton(
                 child: const Icon(Icons.camera_alt),
                 onPressed: () async {
-                  await takePhoto(context);
+                  await takePhotoAndSolve(context);
                 },
               ),
             ),
@@ -127,7 +126,8 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     );
   }
 
-  Future<void> choosePhoto(BuildContext context) async {
+  // metody zwracaja tylko cropped image i pozniej solve wywolac osobno
+  Future<void> choosePhotoAndSolve(BuildContext context) async {
     PickedFile? pickedFile = await ImagePicker().getImage(
       source: ImageSource.gallery,
       maxWidth: 1800,
@@ -137,15 +137,12 @@ class TakePictureScreenState extends State<TakePictureScreen> {
       XFile imageFromGallery = XFile(pickedFile.path);
 
       String croppedImagePath = await cropImage(imageFromGallery);
-      String userId = await PrefsUtil.getUserId();
 
-      await uploadAndSaveUnprocessedImage(userId, croppedImagePath, context);
-
-      // navigateToApp(context);
+      await solve(context, croppedImagePath);
     }
   }
 
-  Future<void> takePhoto(BuildContext context) async {
+  Future<void> takePhotoAndSolve(BuildContext context) async {
     try {
       await _initializeControllerFuture;
       XFile imageFromCamera = await _controller.takePicture();
@@ -155,50 +152,8 @@ class TakePictureScreenState extends State<TakePictureScreen> {
       }
 
       String croppedImagePath = await cropImage(imageFromCamera);
-      String userId = await PrefsUtil.getUserId();
 
-      var responseAfterUpload = await uploadAndSaveUnprocessedImage(userId, croppedImagePath, context);
-
-      var crosswordId = responseAfterUpload['id'];
-      var crosswordName = responseAfterUpload['crossword_name'];
-      print(crosswordId);
-      print(crosswordName);
-
-      var responseAfterStatusCheck = await checkCrosswordStatus(userId, crosswordId.toString(), context);
-
-      var status = responseAfterStatusCheck['status'];
-
-      if (status == "cannot_solve") {
-        print("cant solve crossword");
-        var snackBar = serverSolvingErrorSnackBar(responseAfterStatusCheck);
-        ScaffoldMessenger.of(context).showSnackBar(snackBar);
-      } else {
-        print("crossword solved - waiting");
-        var getSolvedCrosswordResponse = await HttpUtil.getSolvedCrossword(
-            userId,
-            crosswordId.toString()
-        );
-
-        Directory documentDirectory = await getApplicationDocumentsDirectory();
-        File solvedImageFile = File(join(documentDirectory.path, '$crosswordName.png'));
-        solvedImageFile.writeAsBytesSync(getSolvedCrosswordResponse.bodyBytes);
-
-        print(solvedImageFile);
-        print(solvedImageFile.path);
-
-        // navigateToSaveCrossword(context, solvedImageFile.path);
-
-        var snackBar = serverSolvedMessageSnackbar(
-          context,
-          responseAfterStatusCheck,
-          solvedImageFile.path,
-          crosswordId.toString(),
-          crosswordName
-        );
-        ScaffoldMessenger.of(context).showSnackBar(snackBar);
-
-        //navigateToApp(context);
-      }
+      await solve(context, croppedImagePath);
     } catch (e) {
       print(e);
     }
@@ -221,7 +176,53 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     return path;
   }
 
-  Future<dynamic> uploadAndSaveUnprocessedImage(String userId, String imagePath, BuildContext context) async {
+  Future<void> solve(BuildContext context, String croppedImagePath) async {
+    String userId = await PrefsUtil.getUserId();
+
+    var responseAfterUpload =
+        await uploadAndSaveUnprocessedImage(userId, croppedImagePath, context);
+
+    var crosswordId = responseAfterUpload['id'];
+    var crosswordName = responseAfterUpload['crossword_name'];
+    print(crosswordId);
+    print(crosswordName);
+
+    var responseAfterStatusCheck =
+        await checkCrosswordStatus(userId, crosswordId.toString(), context);
+
+    var status = responseAfterStatusCheck['status'];
+
+    if (status == "cannot_solve") {
+      print("cant solve crossword");
+
+      var snackBar = serverSolvingErrorSnackBar(responseAfterStatusCheck);
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    } else {
+      print("crossword solved - waiting");
+
+      var getSolvedCrosswordResponse =
+          await HttpUtil.getSolvedCrossword(userId, crosswordId.toString());
+
+      Directory documentDirectory = await getApplicationDocumentsDirectory();
+      File solvedImageFile =
+          File(join(documentDirectory.path, '$crosswordName.png'));
+      solvedImageFile.writeAsBytesSync(getSolvedCrosswordResponse.bodyBytes);
+
+      print(solvedImageFile);
+      print(solvedImageFile.path);
+
+      var snackBar = serverSolvedMessageSnackbar(
+          context,
+          responseAfterStatusCheck,
+          solvedImageFile.path,
+          crosswordId.toString(),
+          crosswordName);
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    }
+  }
+
+  Future<dynamic> uploadAndSaveUnprocessedImage(
+      String userId, String imagePath, BuildContext context) async {
     var response = await sendImageToServer(userId, imagePath, context);
 
     var crosswordId = response['id'];
@@ -233,29 +234,17 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     return response;
   }
 
-  Future<dynamic> sendImageToServer(String userId, String imagePath, BuildContext context) async {
-    var response = await HttpUtil.sendCrossword(userId, imagePath
-    );
+  Future<dynamic> sendImageToServer(
+      String userId, String imagePath, BuildContext context) async {
+    var response = await HttpUtil.sendCrossword(userId, imagePath);
 
     var body = jsonDecode(response.body);
 
     var status = response.statusCode;
     if (status == 200) {
       print('upload sucess');
-
-      // ScaffoldMessenger.of(context)
-      //     .showSnackBar(serverErrorSnackBar(status.toString()));
-
-      // TODO
-      // alert ze krzyzowka wyslana na serwer albo ze sie nie udalo
-      // utworzenie watku do sprawdzania statusu
-      // TODO
-
     } else {
       print("Error ${response.statusCode}");
-
-      // ScaffoldMessenger.of(context)
-      //     .showSnackBar(serverErrorSnackBar(status.toString()));
     }
 
     return body;
@@ -274,27 +263,19 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     crosswordInfoRepository.insertCrosswordInfo(crosswordInfo);
   }
 
-  void navigateToApp(context) {
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (context) => const App(),
-    ));
-  }
-
   SnackBar serverErrorSnackBar(String statusCode) {
     return SnackBar(
         behavior: SnackBarBehavior.floating,
         backgroundColor: Colors.red,
-        content: Text("Error! Status code: $statusCode")
-    );
+        content: Text("Error! Status code: $statusCode"));
   }
 
-  Future<dynamic> checkCrosswordStatus(String userId, String crosswordId, BuildContext context) async {
+  Future<dynamic> checkCrosswordStatus(
+      String userId, String crosswordId, BuildContext context) async {
     print("checkCrosswordStatus");
 
-    var resposne = await HttpUtil.getCrosswordStatus(
-        userId,
-        crosswordId.toString()
-    );
+    var resposne =
+        await HttpUtil.getCrosswordStatus(userId, crosswordId.toString());
 
     var decodedResponse = jsonDecode(resposne.body);
     print(decodedResponse);
@@ -305,10 +286,8 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     while (status != "solved_waiting" && status != "cannot_solve") {
       await Future.delayed(const Duration(seconds: 1));
 
-      var resposne = await HttpUtil.getCrosswordStatus(
-          userId,
-          crosswordId.toString()
-      );
+      var resposne =
+          await HttpUtil.getCrosswordStatus(userId, crosswordId.toString());
 
       decodedResponse = jsonDecode(resposne.body);
       print(decodedResponse);
@@ -326,7 +305,8 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     return decodedResponse;
   }
 
-  SnackBar serverSolvedMessageSnackbar(context, dynamic decodedResponse, String path, String id, String name) {
+  SnackBar serverSolvedMessageSnackbar(
+      context, dynamic decodedResponse, String path, String id, String name) {
     var status = decodedResponse['status'];
     var message = decodedResponse['message'];
 
@@ -351,19 +331,19 @@ class TakePictureScreenState extends State<TakePictureScreen> {
       behavior: SnackBarBehavior.floating,
       content: Text("Status: $status, message: $message"),
       backgroundColor: (Colors.red),
-      action: SnackBarAction(
-        label: 'dismiss',
-        onPressed: () {
-        },
-      ),
+      // action: SnackBarAction(
+      //   label: 'dismiss',
+      //   onPressed: () {
+      //   },
+      // ),
     );
   }
 
   void navigateToSaveCrossword(context, String path, String id, String name) {
-    Navigator.pushAndRemoveUntil(
+    Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => SaveCrossword(path: path, id: id, name: name)),
-          (Route<dynamic> route) => false,
+      MaterialPageRoute(
+          builder: (context) => SaveCrossword(path: path, id: id, name: name)),
     );
   }
 }
