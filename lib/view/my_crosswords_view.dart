@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:crossword_solver/util/http_util.dart';
 import 'package:crossword_solver/util/loading_page_util.dart';
+import 'package:crossword_solver/view/save_crossword.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -41,13 +42,21 @@ class MyCrosswordsState extends State<MyCrosswords> {
   Widget build(BuildContext context) {
     return FutureBuilder<List<CrosswordInfo>>(
         future: getImages(),
-        builder: (context, images) {
-          if (images.hasData) {
+        builder: (context, crosswordsInfo) {
+          if (crosswordsInfo.hasData) {
+            var crosswordsInfoSorted = crosswordsInfo.data!;
+            crosswordsInfoSorted.sort((a, b) {
+              int statusComp = -a.status.compareTo(b.status);
+              if (statusComp == 0) {
+                return a.crosswordName.compareTo(b.crosswordName);
+              }
+              return statusComp;
+            });
             return ListView(
                 padding: const EdgeInsets.all(5),
                 children: <Widget>[
-                  for (var photo in images.data!)
-                    createCrosswordList(context, photo),
+                  for (var crosswordInfo in crosswordsInfoSorted)
+                    createCrosswordList(context, crosswordInfo),
                 ]);
           } else {
             return LoadingPageUtil.buildLoadingPage();
@@ -61,51 +70,79 @@ class MyCrosswordsState extends State<MyCrosswords> {
     return photos;
   }
 
-  Container createCrosswordList(BuildContext context, CrosswordInfo photo) {
-    Image image = Image.file(File(photo.path));
+  Container createCrosswordList(
+      BuildContext context, CrosswordInfo crosswordInfo) {
+    Image image = Image.file(File(crosswordInfo.path));
+
+    var color = Colors.white;
+    if (crosswordInfo.status == "solved_waiting") {
+      color = Colors.orange;
+    }
 
     return Container(
+        color: color,
         margin: const EdgeInsets.only(bottom: 5.0),
         child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
           const Expanded(flex: 25, child: SizedBox()),
-          buildClickableImage(photo, image),
+          buildClickableImage(crosswordInfo, image),
           const Expanded(flex: 25, child: SizedBox()),
-          buildClickableCrosswordName(photo, image),
+          buildClickableCrosswordName(crosswordInfo, image),
           const Expanded(flex: 25, child: SizedBox()),
-          buildDateInProperFormat(photo.timestamp),
+          buildDateInProperFormat(crosswordInfo.timestamp),
           const Expanded(flex: 25, child: SizedBox()),
-          buildRemoveButton(photo),
+          buildRemoveButton(crosswordInfo),
         ]));
   }
 
-  Expanded buildClickableImage(CrosswordInfo photo, Image image) {
+  Expanded buildClickableImage(CrosswordInfo crosswordInfo, Image image) {
     return Expanded(
         flex: 300,
         child: GestureDetector(
           child: image,
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) {
-              return ModifyCrosswordNameScreen(photo, image);
-            })).then((value) => {
-                  if (value == true) {refreshState()}
-                });
+            modifyNameOrSaveCrossword(crosswordInfo, image);
           },
         ));
   }
 
-  Expanded buildClickableCrosswordName(CrosswordInfo photo, Image image) {
+  Expanded buildClickableCrosswordName(
+      CrosswordInfo crosswordInfo, Image image) {
     return Expanded(
         flex: 300,
         child: GestureDetector(
-          child: Text(photo.crosswordName),
+          child: Text(crosswordInfo.crosswordName),
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) {
-              return ModifyCrosswordNameScreen(photo, image);
-            })).then((value) => {
-                  if (value == true) {refreshState()}
-                });
+            modifyNameOrSaveCrossword(crosswordInfo, image);
           },
         ));
+  }
+
+  void modifyNameOrSaveCrossword(CrosswordInfo crosswordInfo, Image image) {
+    if (crosswordInfo.status == "solved_waiting") {
+      navigateToSaveCrossword(crosswordInfo);
+    } else {
+      navigateToModifyCrosswordNameScreen(crosswordInfo, image);
+    }
+  }
+
+  void navigateToModifyCrosswordNameScreen(
+      CrosswordInfo crosswordInfo, Image image) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) {
+      return ModifyCrosswordNameScreen(crosswordInfo, image);
+    })).then((value) => {
+          if (value == true) {refreshState()}
+        });
+  }
+
+  void navigateToSaveCrossword(CrosswordInfo crosswordInfo) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) {
+      return SaveCrossword(
+          path: crosswordInfo.path,
+          id: crosswordInfo.id.toString(),
+          name: crosswordInfo.crosswordName);
+    })).then((value) => {
+          if (value == true) {refreshState()}
+        });
   }
 
   Expanded buildDateInProperFormat(DateTime dateTime) {
