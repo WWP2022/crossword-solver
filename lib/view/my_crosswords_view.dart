@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:crossword_solver/util/http_util.dart';
 import 'package:crossword_solver/util/loading_page_util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -127,14 +129,24 @@ class MyCrosswordsState extends State<MyCrosswords> {
     );
   }
 
-  void showDeletionAlert(BuildContext context, CrosswordInfo photo) {
+  void showDeletionAlert(BuildContext context, CrosswordInfo crosswordInfo) {
     Widget okButton = TextButton(
       child: const Text("Usuń"),
-      onPressed: () {
+      onPressed: () async {
         setState(() {
-          crosswordsInfo.remove(photo);
+          crosswordsInfo.remove(crosswordInfo);
         });
-        removeImage(photo.id!);
+
+        var response = await HttpUtil.deleteCrossword(
+            crosswordInfo.userId, crosswordInfo.id.toString());
+
+        if (response.statusCode == 204) {
+          removeImage(crosswordInfo.id);
+        } else {
+          var decodedResponse = jsonDecode(response.body);
+          print("error: " + decodedResponse['error']);
+        }
+
         Navigator.pop(context);
       },
     );
@@ -231,10 +243,25 @@ class ModifyCrosswordNameScreenState extends State<ModifyCrosswordNameScreen> {
                         String newCrosswordName =
                             modifyCrosswordNameController.text;
                         if (await isCrosswordNameWrong(
-                            widget.crosswordInfo.crosswordName, newCrosswordName)) {
+                            widget.crosswordInfo.crosswordName,
+                            newCrosswordName)) {
                           showEmptyNameAlert(context);
                         } else {
-                          saveCrosswordName(widget.crosswordInfo, newCrosswordName);
+                          var response = await HttpUtil.updateCrossword(
+                              widget.crosswordInfo.userId,
+                              widget.crosswordInfo.id.toString(),
+                              crosswordName: newCrosswordName,
+                              isAccepted: true);
+
+                          var decodedResponse = jsonDecode(response.body);
+
+                          if (response.statusCode == 201) {
+                            saveCrosswordName(
+                                widget.crosswordInfo, newCrosswordName);
+                          } else {
+                            print("error: " + decodedResponse['error']);
+                          }
+
                           Navigator.pop(context, true);
                         }
                       },
@@ -298,8 +325,11 @@ class ModifyCrosswordNameScreenState extends State<ModifyCrosswordNameScreen> {
   Future<bool> isCrosswordNameWrong(
       String oldCrosswordName, String newCrosswordName) async {
     CrosswordInfoRepository crosswordInfoRepository = CrosswordInfoRepository();
-    List<CrosswordInfo> crosswordsInfo = await crosswordInfoRepository.getAllCrosswordsInfo();
-    if (crosswordsInfo.map((crosswordInfo) => crosswordInfo.crosswordName).contains(newCrosswordName)) {
+    List<CrosswordInfo> crosswordsInfo =
+        await crosswordInfoRepository.getAllCrosswordsInfo();
+    if (crosswordsInfo
+        .map((crosswordInfo) => crosswordInfo.crosswordName)
+        .contains(newCrosswordName)) {
       return true;
     }
     if (newCrosswordName.isEmpty) {

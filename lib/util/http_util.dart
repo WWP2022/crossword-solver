@@ -3,9 +3,11 @@ import 'dart:io';
 
 import 'package:async/async.dart';
 import 'package:crossword_solver/model/crossword_clue.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../config/config.dart';
 
@@ -19,7 +21,6 @@ class HttpUtil {
 
     var response =
         await http.post(url, headers: headers, body: jsonEncode(body));
-
     return response;
   }
 
@@ -35,13 +36,13 @@ class HttpUtil {
     var url = Config.makeUriQuery(baseUrl, '/api/solver');
     var request = http.MultipartRequest('POST', url);
 
-    // final byteData = await rootBundle.load('assets/images/39.png');
-    // var imageFile =
-    //     File('${(await getTemporaryDirectory()).path}/crossword.jpg');
-    // imageFile = await imageFile.writeAsBytes(byteData.buffer
-    //     .asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
+    final byteData = await rootBundle.load('assets/images/39.png');
+    var imageFile =
+        File('${(await getTemporaryDirectory()).path}/crossword.jpg');
+    imageFile = await imageFile.writeAsBytes(byteData.buffer
+        .asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
 
-    var imageFile = File(imagePath);
+    // var imageFile = File(imagePath);
     var stream = http.ByteStream(DelegatingStream(imageFile.openRead()));
     var length = await imageFile.length();
     var image = http.MultipartFile('image', stream, length,
@@ -54,8 +55,8 @@ class HttpUtil {
     request.fields['timestamp'] = date;
 
     var myRequest = await request.send();
-    var response = await http.Response.fromStream(myRequest);
 
+    var response = await http.Response.fromStream(myRequest);
     return response;
   }
 
@@ -71,7 +72,6 @@ class HttpUtil {
       url,
       headers: headers,
     );
-
     return response;
   }
 
@@ -86,13 +86,12 @@ class HttpUtil {
       url,
       headers: headers,
     );
-
     return response;
   }
 
   static Future<http.Response> updateCrossword(
-      String userId, String crosswordId, bool isAccepted,
-      {String? crosswordName}) async {
+      String userId, String crosswordId,
+      {bool? isAccepted, String? crosswordName}) async {
     var url = Config.makeUriQuery(baseUrl, '/api/crossword');
     var body = {
       'user_id': userId,
@@ -100,20 +99,21 @@ class HttpUtil {
       'crossword_name': crosswordName,
       'is_accepted': isAccepted
     };
+    print(body);
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
 
     var response =
         await http.patch(url, headers: headers, body: jsonEncode(body));
-
     return response;
   }
 
   static Future<http.Response> postCrosswordClue(
       CrosswordClue crosswordClue) async {
-    final queryParameters = {'user_id': crosswordClue.user_id};
+    final args = {'user_id': crosswordClue.user_id};
     var url = Config.makeUriQuery(baseUrl, '/api/crossword-clue',
-        queryParameters: queryParameters);
+        queryParameters: args);
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
+
     var response =
         await http.put(url, body: jsonEncode(crosswordClue), headers: headers);
     return response;
@@ -121,12 +121,26 @@ class HttpUtil {
 
   static Future<http.Response> getAllCrosswordCluesByUserId(
       String userId) async {
-    final queryParameters = {'user_id': userId};
+    final args = {'user_id': userId};
     var url = Config.makeUriQuery(baseUrl, '/api/crossword-clue',
-        queryParameters: queryParameters);
+        queryParameters: args);
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
 
     var response = await http.get(url, headers: headers);
+    return response;
+  }
+
+  static Future<http.Response> deleteCrossword(
+      String userId, String crosswordId) async {
+    final args = {
+      'user_id': userId,
+      'crossword_id': crosswordId
+    };
+    var url = Config.makeUriQuery(baseUrl, "/api/crossword",
+        queryParameters: args);
+    var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
+
+    var response = await http.delete(url, headers: headers);
     return response;
   }
 }

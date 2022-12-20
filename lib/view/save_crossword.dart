@@ -71,7 +71,7 @@ class _SaveCrossword extends State<SaveCrossword> {
         var response = await HttpUtil.updateCrossword(
             userId,
             widget.id,
-            false
+            isAccepted: false
         );
 
         var decodedResponse = jsonDecode(response.body);
@@ -116,14 +116,14 @@ class _SaveCrossword extends State<SaveCrossword> {
             response = await HttpUtil.updateCrossword(
                 userId,
                 widget.id,
-                true,
+                isAccepted: true,
                 crosswordName: crosswordName
             );
           } else {
             response = await HttpUtil.updateCrossword(
                 userId,
                 widget.id,
-                true
+                isAccepted: true,
             );
           }
 
