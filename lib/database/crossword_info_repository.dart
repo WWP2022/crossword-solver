@@ -38,10 +38,11 @@ class CrosswordInfoRepository {
         where: '${CrosswordInfoFields.id} = ?', whereArgs: [crosswordInfo.id]);
   }
 
-  Future<List<CrosswordInfo>> getAllCrosswordsInfo() async {
+  Future<List<CrosswordInfo>> getAllCrosswordsInfo(String userId) async {
     final db = await CrosswordDatabase.instance.database;
 
-    final result = await db.query(tableName);
+    final result = await db.query(tableName, where:
+    '${CrosswordInfoFields.userId} = ?', whereArgs: [userId]);
 
     return result.map((json) => CrosswordInfo.fromJson(json)).toList();
   }

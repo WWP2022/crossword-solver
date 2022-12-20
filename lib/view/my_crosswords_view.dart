@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:crossword_solver/util/http_util.dart';
 import 'package:crossword_solver/util/loading_page_util.dart';
+import 'package:crossword_solver/util/prefs_util.dart';
 import 'package:crossword_solver/view/save_crossword.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -34,7 +35,8 @@ class MyCrosswordsState extends State<MyCrosswords> {
 
   getPhotos() async {
     CrosswordInfoRepository photoRepository = CrosswordInfoRepository();
-    crosswordsInfo = await photoRepository.getAllCrosswordsInfo();
+    var userId = await PrefsUtil.getUserId();
+    crosswordsInfo = await photoRepository.getAllCrosswordsInfo(userId);
     setState(() {});
   }
 
@@ -66,7 +68,8 @@ class MyCrosswordsState extends State<MyCrosswords> {
 
   Future<List<CrosswordInfo>> getImages() async {
     CrosswordInfoRepository photoRepository = CrosswordInfoRepository();
-    List<CrosswordInfo> photos = await photoRepository.getAllCrosswordsInfo();
+    var userId = await PrefsUtil.getUserId();
+    List<CrosswordInfo> photos = await photoRepository.getAllCrosswordsInfo(userId);
     return photos;
   }
 
@@ -362,8 +365,9 @@ class ModifyCrosswordNameScreenState extends State<ModifyCrosswordNameScreen> {
   Future<bool> isCrosswordNameWrong(
       String oldCrosswordName, String newCrosswordName) async {
     CrosswordInfoRepository crosswordInfoRepository = CrosswordInfoRepository();
+    var userId = await PrefsUtil.getUserId();
     List<CrosswordInfo> crosswordsInfo =
-        await crosswordInfoRepository.getAllCrosswordsInfo();
+        await crosswordInfoRepository.getAllCrosswordsInfo(userId);
     if (crosswordsInfo
         .map((crosswordInfo) => crosswordInfo.crosswordName)
         .contains(newCrosswordName)) {
