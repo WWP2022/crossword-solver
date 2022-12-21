@@ -19,7 +19,7 @@ class CrosswordInfoFields {
 }
 
 class CrosswordInfo {
-  final int? id;
+  final int id;
   final String path;
   String crosswordName;
   final DateTime timestamp;

@@ -1,6 +1,7 @@
 import 'package:crossword_solver/util/prefs_util.dart';
 import 'package:crossword_solver/view/logging_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../util/loading_page_util.dart';
 
@@ -58,7 +59,7 @@ class MyAccountState extends State<MyAccount> {
 
   Container logoutButton() {
     return Container(
-      margin: const EdgeInsets.only(top: 10, left: 20, right: 20),
+      margin: const EdgeInsets.only(top: 400, left: 20, right: 20),
       child: Builder(
         builder: (context) => ElevatedButton(
           style: buttonStyle,

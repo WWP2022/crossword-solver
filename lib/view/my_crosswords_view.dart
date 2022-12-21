@@ -1,7 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:crossword_solver/util/http_util.dart';
 import 'package:crossword_solver/util/loading_page_util.dart';
+import 'package:crossword_solver/util/prefs_util.dart';
+import 'package:crossword_solver/view/save_crossword.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -17,7 +21,7 @@ class MyCrosswords extends StatefulWidget {
 }
 
 class MyCrosswordsState extends State<MyCrosswords> {
-  late List<CrosswordInfo> photos;
+  late List<CrosswordInfo> crosswordsInfo;
 
   @override
   void initState() {
@@ -31,7 +35,8 @@ class MyCrosswordsState extends State<MyCrosswords> {
 
   getPhotos() async {
     CrosswordInfoRepository photoRepository = CrosswordInfoRepository();
-    photos = await photoRepository.getAllCrosswordsInfo();
+    var userId = await PrefsUtil.getUserId();
+    crosswordsInfo = await photoRepository.getAllCrosswordsInfo(userId);
     setState(() {});
   }
 
@@ -39,13 +44,21 @@ class MyCrosswordsState extends State<MyCrosswords> {
   Widget build(BuildContext context) {
     return FutureBuilder<List<CrosswordInfo>>(
         future: getImages(),
-        builder: (context, images) {
-          if (images.hasData) {
+        builder: (context, crosswordsInfo) {
+          if (crosswordsInfo.hasData) {
+            var crosswordsInfoSorted = crosswordsInfo.data!;
+            crosswordsInfoSorted.sort((a, b) {
+              int statusComp = -a.status.compareTo(b.status);
+              if (statusComp == 0) {
+                return a.crosswordName.compareTo(b.crosswordName);
+              }
+              return statusComp;
+            });
             return ListView(
                 padding: const EdgeInsets.all(5),
                 children: <Widget>[
-                  for (var photo in images.data!)
-                    createCrosswordList(context, photo),
+                  for (var crosswordInfo in crosswordsInfoSorted)
+                    createCrosswordList(context, crosswordInfo),
                 ]);
           } else {
             return LoadingPageUtil.buildLoadingPage();
@@ -55,55 +68,84 @@ class MyCrosswordsState extends State<MyCrosswords> {
 
   Future<List<CrosswordInfo>> getImages() async {
     CrosswordInfoRepository photoRepository = CrosswordInfoRepository();
-    List<CrosswordInfo> photos = await photoRepository.getAllCrosswordsInfo();
+    var userId = await PrefsUtil.getUserId();
+    List<CrosswordInfo> photos = await photoRepository.getAllCrosswordsInfo(userId);
     return photos;
   }
 
-  Container createCrosswordList(BuildContext context, CrosswordInfo photo) {
-    Image image = Image.file(File(photo.path));
+  Container createCrosswordList(
+      BuildContext context, CrosswordInfo crosswordInfo) {
+    Image image = Image.file(File(crosswordInfo.path));
+
+    var color = Colors.white;
+    if (crosswordInfo.status == "solved_waiting") {
+      color = Colors.orange;
+    }
 
     return Container(
+        color: color,
         margin: const EdgeInsets.only(bottom: 5.0),
         child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
           const Expanded(flex: 25, child: SizedBox()),
-          buildClickableImage(photo, image),
+          buildClickableImage(crosswordInfo, image),
           const Expanded(flex: 25, child: SizedBox()),
-          buildClickableCrosswordName(photo, image),
+          buildClickableCrosswordName(crosswordInfo, image),
           const Expanded(flex: 25, child: SizedBox()),
-          buildDateInProperFormat(photo.timestamp),
+          buildDateInProperFormat(crosswordInfo.timestamp),
           const Expanded(flex: 25, child: SizedBox()),
-          buildRemoveButton(photo),
+          buildRemoveButton(crosswordInfo),
         ]));
   }
 
-  Expanded buildClickableImage(CrosswordInfo photo, Image image) {
+  Expanded buildClickableImage(CrosswordInfo crosswordInfo, Image image) {
     return Expanded(
         flex: 300,
         child: GestureDetector(
           child: image,
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) {
-              return ModifyCrosswordNameScreen(photo, image);
-            })).then((value) => {
-                  if (value == true) {refreshState()}
-                });
+            modifyNameOrSaveCrossword(crosswordInfo, image);
           },
         ));
   }
 
-  Expanded buildClickableCrosswordName(CrosswordInfo photo, Image image) {
+  Expanded buildClickableCrosswordName(
+      CrosswordInfo crosswordInfo, Image image) {
     return Expanded(
         flex: 300,
         child: GestureDetector(
-          child: Text(photo.crosswordName),
+          child: Text(crosswordInfo.crosswordName),
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) {
-              return ModifyCrosswordNameScreen(photo, image);
-            })).then((value) => {
-                  if (value == true) {refreshState()}
-                });
+            modifyNameOrSaveCrossword(crosswordInfo, image);
           },
         ));
+  }
+
+  void modifyNameOrSaveCrossword(CrosswordInfo crosswordInfo, Image image) {
+    if (crosswordInfo.status == "solved_waiting") {
+      navigateToSaveCrossword(crosswordInfo);
+    } else {
+      navigateToModifyCrosswordNameScreen(crosswordInfo, image);
+    }
+  }
+
+  void navigateToModifyCrosswordNameScreen(
+      CrosswordInfo crosswordInfo, Image image) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) {
+      return ModifyCrosswordNameScreen(crosswordInfo, image);
+    })).then((value) => {
+          if (value == true) {refreshState()}
+        });
+  }
+
+  void navigateToSaveCrossword(CrosswordInfo crosswordInfo) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) {
+      return SaveCrossword(
+          path: crosswordInfo.path,
+          id: crosswordInfo.id.toString(),
+          name: crosswordInfo.crosswordName);
+    })).then((value) => {
+          if (value == true) {refreshState()}
+        });
   }
 
   Expanded buildDateInProperFormat(DateTime dateTime) {
@@ -127,14 +169,24 @@ class MyCrosswordsState extends State<MyCrosswords> {
     );
   }
 
-  void showDeletionAlert(BuildContext context, CrosswordInfo photo) {
+  void showDeletionAlert(BuildContext context, CrosswordInfo crosswordInfo) {
     Widget okButton = TextButton(
       child: const Text("Usuń"),
-      onPressed: () {
+      onPressed: () async {
         setState(() {
-          photos.remove(photo);
+          crosswordsInfo.remove(crosswordInfo);
         });
-        removeImage(photo.id!);
+
+        var response = await HttpUtil.deleteCrossword(
+            crosswordInfo.userId, crosswordInfo.id.toString());
+
+        if (response.statusCode == 204) {
+          removeImage(crosswordInfo.id);
+        } else {
+          var decodedResponse = jsonDecode(response.body);
+          print("error: " + decodedResponse['error']);
+        }
+
         Navigator.pop(context);
       },
     );
@@ -165,10 +217,10 @@ class MyCrosswordsState extends State<MyCrosswords> {
 }
 
 class ModifyCrosswordNameScreen extends StatefulWidget {
-  final CrosswordInfo photo;
+  final CrosswordInfo crosswordInfo;
   final Image image;
 
-  const ModifyCrosswordNameScreen(this.photo, this.image, {super.key});
+  const ModifyCrosswordNameScreen(this.crosswordInfo, this.image, {super.key});
 
   @override
   ModifyCrosswordNameScreenState createState() =>
@@ -181,7 +233,7 @@ class ModifyCrosswordNameScreenState extends State<ModifyCrosswordNameScreen> {
   @override
   initState() {
     super.initState();
-    modifyCrosswordNameController.text = widget.photo.crosswordName;
+    modifyCrosswordNameController.text = widget.crosswordInfo.crosswordName;
   }
 
   @override
@@ -231,10 +283,25 @@ class ModifyCrosswordNameScreenState extends State<ModifyCrosswordNameScreen> {
                         String newCrosswordName =
                             modifyCrosswordNameController.text;
                         if (await isCrosswordNameWrong(
-                            widget.photo.crosswordName, newCrosswordName)) {
+                            widget.crosswordInfo.crosswordName,
+                            newCrosswordName)) {
                           showEmptyNameAlert(context);
                         } else {
-                          saveCrosswordName(widget.photo, newCrosswordName);
+                          var response = await HttpUtil.updateCrossword(
+                              widget.crosswordInfo.userId,
+                              widget.crosswordInfo.id.toString(),
+                              crosswordName: newCrosswordName,
+                              isAccepted: true);
+
+                          var decodedResponse = jsonDecode(response.body);
+
+                          if (response.statusCode == 201) {
+                            saveCrosswordName(
+                                widget.crosswordInfo, newCrosswordName);
+                          } else {
+                            print("error: " + decodedResponse['error']);
+                          }
+
                           Navigator.pop(context, true);
                         }
                       },
@@ -289,17 +356,21 @@ class ModifyCrosswordNameScreenState extends State<ModifyCrosswordNameScreen> {
     );
   }
 
-  void saveCrosswordName(CrosswordInfo photo, String text) {
-    CrosswordInfoRepository photoRepository = CrosswordInfoRepository();
-    photo.crosswordName = text;
-    photoRepository.updateCrosswordInfo(photo);
+  void saveCrosswordName(CrosswordInfo crosswordInfo, String text) {
+    CrosswordInfoRepository crosswordInfoRepository = CrosswordInfoRepository();
+    crosswordInfo.crosswordName = text;
+    crosswordInfoRepository.updateCrosswordInfo(crosswordInfo);
   }
 
   Future<bool> isCrosswordNameWrong(
       String oldCrosswordName, String newCrosswordName) async {
-    CrosswordInfoRepository photoRepository = CrosswordInfoRepository();
-    List<CrosswordInfo> photos = await photoRepository.getAllCrosswordsInfo();
-    if (photos.map((photo) => photo.crosswordName).contains(newCrosswordName)) {
+    CrosswordInfoRepository crosswordInfoRepository = CrosswordInfoRepository();
+    var userId = await PrefsUtil.getUserId();
+    List<CrosswordInfo> crosswordsInfo =
+        await crosswordInfoRepository.getAllCrosswordsInfo(userId);
+    if (crosswordsInfo
+        .map((crosswordInfo) => crosswordInfo.crosswordName)
+        .contains(newCrosswordName)) {
       return true;
     }
     if (newCrosswordName.isEmpty) {

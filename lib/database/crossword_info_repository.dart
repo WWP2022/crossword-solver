@@ -8,14 +8,14 @@ import 'crossword_database.dart';
 class CrosswordInfoRepository {
   static const String tableName = "crossword_info";
 
-  Future<CrosswordInfo> insertCrosswordInfo(CrosswordInfo photo) async {
+  Future<CrosswordInfo> insertCrosswordInfo(CrosswordInfo crosswordInfo) async {
     final db = await CrosswordDatabase.instance.database;
     final id = await db.insert(
       tableName,
-      photo.toJson(),
+      crosswordInfo.toJson(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
-    return photo.copy(id: id);
+    return crosswordInfo.copy(id: id);
   }
 
   Future<CrosswordInfo> getCrosswordInfo(int id) async {
@@ -32,16 +32,19 @@ class CrosswordInfoRepository {
     }
   }
 
-  Future<int> updateCrosswordInfo(CrosswordInfo photo) async {
+  Future<int> updateCrosswordInfo(CrosswordInfo crosswordInfo) async {
     final db = await CrosswordDatabase.instance.database;
-    return db.update(tableName, photo.toJson(),
-        where: '${CrosswordInfoFields.id} = ?', whereArgs: [photo.id]);
+    return db.update(tableName, crosswordInfo.toJson(),
+        where: '${CrosswordInfoFields.id} = ?', whereArgs: [crosswordInfo.id]);
   }
 
-  Future<List<CrosswordInfo>> getAllCrosswordsInfo() async {
+  Future<List<CrosswordInfo>> getAllCrosswordsInfo(String userId) async {
     final db = await CrosswordDatabase.instance.database;
 
-    final result = await db.query(tableName);
+    final result = await db.query(tableName,
+        where:
+            '${CrosswordInfoFields.userId} = ? and (${CrosswordInfoFields.status} = ? or ${CrosswordInfoFields.status} = ?)',
+        whereArgs: [userId, "solved_waiting", "solved_accepted"]);
 
     return result.map((json) => CrosswordInfo.fromJson(json)).toList();
   }
