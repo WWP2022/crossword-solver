@@ -41,8 +41,10 @@ class CrosswordInfoRepository {
   Future<List<CrosswordInfo>> getAllCrosswordsInfo(String userId) async {
     final db = await CrosswordDatabase.instance.database;
 
-    final result = await db.query(tableName, where:
-    '${CrosswordInfoFields.userId} = ?', whereArgs: [userId]);
+    final result = await db.query(tableName,
+        where:
+            '${CrosswordInfoFields.userId} = ? and (${CrosswordInfoFields.status} = ? or ${CrosswordInfoFields.status} = ?)',
+        whereArgs: [userId, "solved_waiting", "solved_accepted"]);
 
     return result.map((json) => CrosswordInfo.fromJson(json)).toList();
   }

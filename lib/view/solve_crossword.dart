@@ -126,7 +126,6 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     );
   }
 
-  // metody zwracaja tylko cropped image i pozniej solve wywolac osobno
   Future<void> choosePhotoAndSolve(BuildContext context) async {
     PickedFile? pickedFile = await ImagePicker().getImage(
       source: ImageSource.gallery,
@@ -212,12 +211,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
       print(solvedImageFile.path);
 
       saveImageBeforeAccept(
-          crosswordId,
-          solvedImageFile.path,
-          crosswordName,
-          userId,
-          status
-      );
+          crosswordId, solvedImageFile.path, crosswordName, userId, status);
 
       var snackBar = serverSolvedMessageSnackbar(
           context,
@@ -271,27 +265,14 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     crosswordInfoRepository.insertCrosswordInfo(crosswordInfo);
   }
 
-  SnackBar serverErrorSnackBar(String statusCode) {
-    return SnackBar(
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.red,
-        content: Text("Error! Status code: $statusCode"));
-  }
-
   Future<dynamic> checkCrosswordStatus(
       String userId, String crosswordId, BuildContext context) async {
     print("checkCrosswordStatus");
 
-    var resposne =
-        await HttpUtil.getCrosswordStatus(userId, crosswordId.toString());
+    dynamic decodedResponse;
+    String status;
 
-    var decodedResponse = jsonDecode(resposne.body);
-    print(decodedResponse);
-
-    var status = decodedResponse['status'];
-    print(status);
-
-    while (status != "solved_waiting" && status != "cannot_solve") {
+    do {
       await Future.delayed(const Duration(seconds: 1));
 
       var resposne =
@@ -302,7 +283,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 
       status = decodedResponse['status'];
       print(status);
-    }
+    } while (status != "solved_waiting" && status != "cannot_solve");
 
     if (status == "cannot_solve") {
       print("cant solve crossword");
@@ -320,10 +301,12 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 
     return SnackBar(
       behavior: SnackBarBehavior.floating,
-      content: Text("Status: $status, message: $message"),
+      content: const Text("Pomyślnie rozwiązano krzyżówkę",
+          style: TextStyle(fontWeight: FontWeight.bold)),
       backgroundColor: (Colors.green),
       action: SnackBarAction(
-        label: 'Go to crossword',
+        textColor: Colors.indigo,
+        label: 'Pokaż',
         onPressed: () {
           navigateToSaveCrossword(context, path, id, name);
         },
@@ -332,12 +315,18 @@ class TakePictureScreenState extends State<TakePictureScreen> {
   }
 
   SnackBar serverSolvingErrorSnackBar(dynamic decodedResponse) {
-    var status = decodedResponse['status'];
     var message = decodedResponse['message'];
+
+    var errorMessageMap = {
+      "lines_not_found": "nie znaleziono linii",
+      "crossword_not_found": "nie znaleziono krzyżówki",
+      "cannot_cropped_images": "nie można podzielić krzyżówki"
+    };
 
     return SnackBar(
       behavior: SnackBarBehavior.floating,
-      content: Text("Status: $status, message: $message"),
+      content: Text(
+          "Nie udało się rozwiązać krzyżówki: ${errorMessageMap[message]}"),
       backgroundColor: (Colors.red),
       // action: SnackBarAction(
       //   label: 'dismiss',
@@ -355,8 +344,8 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     );
   }
 
-  void saveImageBeforeAccept(
-      int id, String path, String crosswordName, String userId, String status) async {
+  void saveImageBeforeAccept(int id, String path, String crosswordName,
+      String userId, String status) async {
     CrosswordInfoRepository crosswordInfoRepository = CrosswordInfoRepository();
     CrosswordInfo crosswordInfo = CrosswordInfo(
         id: id,
@@ -366,5 +355,12 @@ class TakePictureScreenState extends State<TakePictureScreen> {
         userId: userId,
         status: status);
     await crosswordInfoRepository.insertCrosswordInfo(crosswordInfo);
+  }
+
+  SnackBar serverErrorSnackBar(String statusCode) {
+    return SnackBar(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.red,
+        content: Text("Server error! Status code: $statusCode"));
   }
 }

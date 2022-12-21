@@ -1,13 +1,7 @@
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:crossword_solver/util/http_util.dart';
 import 'package:crossword_solver/util/prefs_util.dart';
 import 'package:crossword_solver/view/logging_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../util/loading_page_util.dart';
 
@@ -51,7 +45,6 @@ class MyAccountState extends State<MyAccount> {
             },
           ),
           logoutButton(),
-          testButton(),
         ],
       ),
     );
@@ -66,7 +59,7 @@ class MyAccountState extends State<MyAccount> {
 
   Container logoutButton() {
     return Container(
-      margin: const EdgeInsets.only(top: 10, left: 20, right: 20),
+      margin: const EdgeInsets.only(top: 400, left: 20, right: 20),
       child: Builder(
         builder: (context) => ElevatedButton(
           style: buttonStyle,
@@ -92,79 +85,4 @@ class MyAccountState extends State<MyAccount> {
       (Route<dynamic> route) => false,
     );
   }
-
-  // TODO testButton and its test function only for testing purposes
-  Container testButton() {
-    return Container(
-      margin: const EdgeInsets.only(top: 80, left: 20, right: 20),
-      child: Builder(builder: (context) => ElevatedButton(
-        style: buttonStyle,
-        onPressed: () async {
-          test();
-        },
-        child: const Text(
-          'Testuj',
-          style: TextStyle(fontSize: 15),
-        ),
-      ),),
-    );
-  }
-
-  Future<void> test() async {
-    var userId = await PrefsUtil.getUserId();
-
-    final byteData = await rootBundle.load('assets/images/crossword.jpg');
-
-    var imageFile = File('${(await getTemporaryDirectory()).path}/crossword.jpg');
-    imageFile = await imageFile.writeAsBytes(byteData.buffer
-        .asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
-
-    var imagePath = imageFile.path;
-
-    var sendCrosswordResponse = await HttpUtil.sendCrossword(userId, imagePath);
-
-    var crosswordId = jsonDecode(sendCrosswordResponse.body)['id'];
-
-    for (int i = 0; i < 10; i++) {
-      await Future.delayed(const Duration(seconds: 3));
-
-      var getCrosswordStatusResponse = await HttpUtil.getCrosswordStatus(
-          userId,
-          crosswordId.toString()
-      );
-
-      var body = jsonDecode(getCrosswordStatusResponse.body);
-
-      print(body);
-    }
-
-    var getSolvedCrosswordResponse = await HttpUtil.getSolvedCrossword(
-        userId,
-        crosswordId.toString()
-    );
-
-    Directory documentDirectory = await getApplicationDocumentsDirectory();
-    File solvedImageFile = File(join(documentDirectory.path, '${jsonDecode(sendCrosswordResponse.body)['crossword_name']}.png'));
-    solvedImageFile.writeAsBytesSync(getSolvedCrosswordResponse.bodyBytes);
-
-    print(getSolvedCrosswordResponse);
-    print(getSolvedCrosswordResponse.body);
-    print(getSolvedCrosswordResponse.bodyBytes);
-    print(solvedImageFile.path);
-
-    // saveImage();
-  }
-
-  // void saveImage(int id, String path, String crosswordName, String userId) async {
-  //   CrosswordInfoRepository crosswordInfoRepository = CrosswordInfoRepository();
-  //   CrosswordInfo crosswordInfo = CrosswordInfo(
-  //       id: id,
-  //       path: path,
-  //       crosswordName: crosswordName,
-  //       timestamp: DateTime.now(),
-  //       userId: userId,
-  //       status: "new"
-  //   );
-  //   crosswordInfoRepository.insertCrosswordInfo(crosswordInfo);
-  // }
 }

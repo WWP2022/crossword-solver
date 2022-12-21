@@ -3,11 +3,9 @@ import 'dart:io';
 
 import 'package:async/async.dart';
 import 'package:crossword_solver/model/crossword_clue.dart';
-import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../config/config.dart';
 
@@ -36,13 +34,13 @@ class HttpUtil {
     var url = Config.makeUriQuery(baseUrl, '/api/solver');
     var request = http.MultipartRequest('POST', url);
 
-    final byteData = await rootBundle.load('assets/images/39.png');
-    var imageFile =
-        File('${(await getTemporaryDirectory()).path}/crossword.jpg');
-    imageFile = await imageFile.writeAsBytes(byteData.buffer
-        .asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
+    // final byteData = await rootBundle.load('assets/images/39.png');
+    // var imageFile =
+    //     File('${(await getTemporaryDirectory()).path}/crossword.jpg');
+    // imageFile = await imageFile.writeAsBytes(byteData.buffer
+    //     .asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
 
-    // var imageFile = File(imagePath);
+    var imageFile = File(imagePath);
     var stream = http.ByteStream(DelegatingStream(imageFile.openRead()));
     var length = await imageFile.length();
     var image = http.MultipartFile('image', stream, length,
