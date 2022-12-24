@@ -139,9 +139,3 @@ class HttpUtil {
     return response;
   }
 }
-
-// TODO
-//button + i więcej odp w PUTcie
-//edycja questiona
-//usuniecie questiona
-//jesli nie ma haseł to komunikat

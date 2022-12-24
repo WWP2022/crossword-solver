@@ -4,22 +4,14 @@ class Config {
       defaultValue: "SERVER"); //possible options: SERVER EMULATOR PHONE
 
   //eg use command 'hostname -I | cut -d' ' -f1' to find out what is your ip
+  //for EMULATOR it will be probably 10.0.2.2:5326
   static const String ipPort = const String.fromEnvironment("IP_PORT");
 
   static String getBaseUrl() {
-    switch (profile) {
-      case "PHONE":
-        {
-          return ipPort;
-        }
-      case "EMULATOR":
-        {
-          return "10.0.2.2:5326";
-        }
-      default:
-        {
-          return "crossword-solver.theliver.pl";
-        }
+    if (profile == "SERVER") {
+      return "crossword-solver.theliver.pl";
+    } else {
+      return ipPort;
     }
   }
 
