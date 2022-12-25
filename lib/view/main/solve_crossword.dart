@@ -14,9 +14,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
-import '../util/loading_page_util.dart';
-import '../util/modify_image_util.dart';
-import '../util/path_util.dart';
+import '../../util/loading_page_util.dart';
+import '../../util/modify_image_util.dart';
+import '../../util/path_util.dart';
 
 late CameraDescription cameraDescription;
 

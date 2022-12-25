@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:crossword_solver/util/http_util.dart';
 import 'package:flutter/material.dart';
 
-import '../model/crossword_clue.dart';
-import '../util/loading_page_util.dart';
-import '../util/prefs_util.dart';
+import '../../model/crossword_clue.dart';
+import '../../util/loading_page_util.dart';
+import '../../util/prefs_util.dart';
 
 class MyCrosswordClues extends StatefulWidget {
   const MyCrosswordClues({super.key});

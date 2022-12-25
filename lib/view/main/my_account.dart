@@ -3,7 +3,7 @@ import 'package:crossword_solver/view/logging_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../util/loading_page_util.dart';
+import '../../util/loading_page_util.dart';
 
 class MyAccount extends StatefulWidget {
   const MyAccount({super.key});
