@@ -52,32 +52,23 @@ class TakePictureScreen extends StatefulWidget {
 }
 
 class TakePictureScreenState extends State<TakePictureScreen> {
-  late CameraController _controller;
+  late CameraController cameraController;
   late Future<void> _initializeControllerFuture;
+  late FlashMode flashMode;
 
   @override
   void initState() {
     super.initState();
-    _controller = CameraController(cameraDescription, ResolutionPreset.medium);
-
-    _initializeControllerFuture = _controller.initialize();
+    flashMode = FlashMode.off;
+    cameraController =
+        CameraController(cameraDescription, ResolutionPreset.medium);
+    _initializeControllerFuture = cameraController.initialize();
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    cameraController.dispose();
     super.dispose();
-  }
-
-  Transform buildFullScreenCamera(BuildContext context) {
-    double controllerAspectRatio = _controller.value.aspectRatio;
-    double contextAspectRatio = MediaQuery.of(context).size.aspectRatio;
-    final scale = 1 / (controllerAspectRatio * contextAspectRatio);
-    return Transform.scale(
-      scale: scale,
-      alignment: Alignment.topCenter,
-      child: CameraPreview(_controller),
-    );
   }
 
   @override
@@ -93,37 +84,87 @@ class TakePictureScreenState extends State<TakePictureScreen> {
           }
         },
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          const Expanded(flex: 3, child: SizedBox()),
-          Expanded(
-            flex: 10,
-            child: Align(
-              alignment: Alignment.bottomLeft,
-              child: FloatingActionButton(
-                  child: const Icon(Icons.photo),
-                  onPressed: () async {
-                    await choosePhotoAndSolve(context);
-                  }),
-            ),
-          ),
-          Expanded(
-            flex: 10,
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: FloatingActionButton(
-                child: const Icon(Icons.camera_alt),
-                onPressed: () async {
-                  await takePhotoAndSolve(context);
-                },
-              ),
-            ),
-          ),
-          const Expanded(flex: 10, child: SizedBox()),
+          galleryFloatingButton(context),
+          photoFloatingButton(context),
+          flashFloatingButton(context),
         ],
       ),
     );
+  }
+
+  Transform buildFullScreenCamera(BuildContext context) {
+    double controllerAspectRatio = cameraController.value.aspectRatio;
+    double contextAspectRatio = MediaQuery.of(context).size.aspectRatio;
+    final scale = 1 / (controllerAspectRatio * contextAspectRatio);
+    return Transform.scale(
+      scale: scale,
+      alignment: Alignment.topCenter,
+      child: CameraPreview(cameraController),
+    );
+  }
+
+  Expanded galleryFloatingButton(BuildContext context) {
+    return Expanded(
+      flex: 10,
+      child: Align(
+        alignment: Alignment.bottomLeft,
+        child: FloatingActionButton(
+            child: const Icon(Icons.photo),
+            onPressed: () async {
+              await choosePhotoAndSolve(context);
+            }),
+      ),
+    );
+  }
+
+  Expanded photoFloatingButton(BuildContext context) {
+    return Expanded(
+      flex: 10,
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: FloatingActionButton(
+          child: const Icon(Icons.camera_alt),
+          onPressed: () async {
+            await takePhotoAndSolve(context);
+          },
+        ),
+      ),
+    );
+  }
+
+  Expanded flashFloatingButton(BuildContext context) {
+    return Expanded(
+      flex: 10,
+      child: Align(
+        alignment: Alignment.bottomRight,
+        child: FloatingActionButton(
+          child: showFlashIcon(),
+          onPressed: () {
+            changeFlashMode();
+          },
+        ),
+      ),
+    );
+  }
+
+  Icon showFlashIcon() {
+    if (flashMode == FlashMode.off) {
+      return const Icon(Icons.flash_off);
+    }
+    return const Icon(Icons.flash_on);
+  }
+
+  void changeFlashMode() {
+    setState(() {
+      if (flashMode == FlashMode.off) {
+        flashMode = FlashMode.always;
+      } else {
+        flashMode = FlashMode.off;
+      }
+    });
   }
 
   Future<void> choosePhotoAndSolve(BuildContext context) async {
@@ -144,7 +185,8 @@ class TakePictureScreenState extends State<TakePictureScreen> {
   Future<void> takePhotoAndSolve(BuildContext context) async {
     try {
       await _initializeControllerFuture;
-      XFile imageFromCamera = await _controller.takePicture();
+      cameraController.setFlashMode(flashMode);
+      XFile imageFromCamera = await cameraController.takePicture();
 
       if (!mounted) {
         return;
