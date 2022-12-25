@@ -1,6 +1,6 @@
-import 'package:crossword_solver/view/main/my_account.dart';
+import 'package:crossword_solver/view/main/my_account_view.dart';
 import 'package:crossword_solver/view/main/my_crossword_clues_view.dart';
-import 'package:crossword_solver/view/main/solve_crossword.dart';
+import 'package:crossword_solver/view/main/solve_crossword_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 

@@ -7,7 +7,7 @@ import 'package:crossword_solver/database/crossword_info_repository.dart';
 import 'package:crossword_solver/model/crossword_info.dart';
 import 'package:crossword_solver/util/http_util.dart';
 import 'package:crossword_solver/util/prefs_util.dart';
-import 'package:crossword_solver/view/save_crossword.dart';
+import 'package:crossword_solver/view/save_crossword_view.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
