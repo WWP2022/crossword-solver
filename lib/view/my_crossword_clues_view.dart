@@ -53,7 +53,8 @@ class MyCrosswordCluesState extends State<MyCrosswordClues> {
     return CrosswordClue(answers, question, user_id);
   }
 
-  //TODO bug: can add only one question (have to quit view, then work good)
+  //TODO bug: can add only one crossword clue (have to quit view, then work good)
+  //TODO bug: cannot add crossword clue when view is empty
   void resetControllers() {
     questionController.clear();
     for (var answerController in answerControllers) {
@@ -79,10 +80,7 @@ class MyCrosswordCluesState extends State<MyCrosswordClues> {
         future: crosswordClues,
         builder: (context, clues) {
           if (clues.hasData) {
-            return ListView(children: <Widget>[
-              for (var clue in clues.data!)
-                createCrosswordClueListView(context, clue),
-            ]);
+            return showCrosswordClues(clues.data!);
           } else {
             return LoadingPageUtil.buildLoadingPage();
           }
@@ -94,6 +92,18 @@ class MyCrosswordCluesState extends State<MyCrosswordClues> {
             displayTextInputDialog(context);
           }),
     );
+  }
+
+  Widget showCrosswordClues(List<CrosswordClue> crosswordCluesToShow) {
+    if (crosswordCluesToShow.isEmpty) {
+      return const Center(
+          child: Text('Brak haseł', textAlign: TextAlign.center));
+    } else {
+      return ListView(children: <Widget>[
+        for (var clue in crosswordCluesToShow)
+          createCrosswordClueListView(context, clue),
+      ]);
+    }
   }
 
   ExpansionTile createCrosswordClueListView(
