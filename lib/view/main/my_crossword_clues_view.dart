@@ -54,7 +54,7 @@ class MyCrosswordCluesState extends State<MyCrosswordClues> {
   }
 
   //TODO bug: can add only one crossword clue (have to quit view, then work good)
-  //TODO bug: cannot add crossword clue when view is empty
+  //TODO reload view or add to new field to crosswordClues
   void resetControllers() {
     questionController.clear();
     for (var answerController in answerControllers) {
@@ -143,7 +143,7 @@ class MyCrosswordCluesState extends State<MyCrosswordClues> {
                   addAnswerButton(setState),
                 ]),
               ),
-              actions: createButtonsInAlertDialog(),
+              actions: createButtonsInAlertDialog(context),
               actionsPadding:
                   const EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
             );
@@ -212,7 +212,7 @@ class MyCrosswordCluesState extends State<MyCrosswordClues> {
     );
   }
 
-  List<Widget> createButtonsInAlertDialog() {
+  List<Widget> createButtonsInAlertDialog(BuildContext context) {
     return <Widget>[
       TextButton(
         child: const Text('ANULUJ'),
