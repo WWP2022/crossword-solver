@@ -310,7 +310,7 @@ class MyCrosswordCluesState extends State<MyCrosswordClues> {
     }
     CrosswordClue crosswordClue =
         CrosswordClue(answers, questionController.text, userId);
-    HttpUtil.postCrosswordClue(crosswordClue);
+    await HttpUtil.postCrosswordClue(crosswordClue);
     return crosswordClue;
   }
 }
