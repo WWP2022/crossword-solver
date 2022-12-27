@@ -61,7 +61,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     super.initState();
     flashMode = FlashMode.off;
     cameraController =
-        CameraController(cameraDescription, ResolutionPreset.medium);
+        CameraController(cameraDescription, ResolutionPreset.max);
     _initializeControllerFuture = cameraController.initialize();
   }
 
