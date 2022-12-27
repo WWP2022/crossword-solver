@@ -1,10 +1,10 @@
-import 'package:crossword_solver/view/my_account.dart';
-import 'package:crossword_solver/view/my_crossword_clues_view.dart';
-import 'package:crossword_solver/view/solve_crossword.dart';
+import 'package:crossword_solver/view/main/my_account_view.dart';
+import 'package:crossword_solver/view/main/my_crossword_clues_view.dart';
+import 'package:crossword_solver/view/main/solve_crossword_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'my_crosswords_view.dart';
+import 'main/my_crosswords_view.dart';
 
 class App extends StatelessWidget {
   static const String _title = 'Rozwiąż krzyżówkę';

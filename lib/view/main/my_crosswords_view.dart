@@ -5,13 +5,13 @@ import 'dart:io';
 import 'package:crossword_solver/util/http_util.dart';
 import 'package:crossword_solver/util/loading_page_util.dart';
 import 'package:crossword_solver/util/prefs_util.dart';
-import 'package:crossword_solver/view/save_crossword.dart';
+import 'package:crossword_solver/view/save_crossword_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
-import '../database/crossword_info_repository.dart';
-import '../model/crossword_info.dart';
+import '../../database/crossword_info_repository.dart';
+import '../../model/crossword_info.dart';
 
 class MyCrosswords extends StatefulWidget {
   const MyCrosswords({super.key});
@@ -46,30 +46,37 @@ class MyCrosswordsState extends State<MyCrosswords> {
         future: getImages(),
         builder: (context, crosswordsInfo) {
           if (crosswordsInfo.hasData) {
-            var crosswordsInfoSorted = crosswordsInfo.data!;
-            crosswordsInfoSorted.sort((a, b) {
-              int statusComp = -a.status.compareTo(b.status);
-              if (statusComp == 0) {
-                return a.crosswordName.compareTo(b.crosswordName);
-              }
-              return statusComp;
-            });
-            return ListView(
-                padding: const EdgeInsets.all(5),
-                children: <Widget>[
-                  for (var crosswordInfo in crosswordsInfoSorted)
-                    createCrosswordList(context, crosswordInfo),
-                ]);
+            return showCrosswords(crosswordsInfo.data!);
           } else {
             return LoadingPageUtil.buildLoadingPage();
           }
         });
   }
 
+  Widget showCrosswords(List<CrosswordInfo> crosswordsInfoToShow) {
+    if (crosswordsInfoToShow.isEmpty) {
+      return const Center(
+          child:
+              Text('Brak zapisanych krzyżówek', textAlign: TextAlign.center));
+    }
+    crosswordsInfoToShow.sort((a, b) {
+      int statusComp = -a.status.compareTo(b.status);
+      if (statusComp == 0) {
+        return a.crosswordName.compareTo(b.crosswordName);
+      }
+      return statusComp;
+    });
+    return ListView(padding: const EdgeInsets.all(5), children: <Widget>[
+      for (var crosswordInfo in crosswordsInfoToShow)
+        createCrosswordList(context, crosswordInfo),
+    ]);
+  }
+
   Future<List<CrosswordInfo>> getImages() async {
     CrosswordInfoRepository photoRepository = CrosswordInfoRepository();
     var userId = await PrefsUtil.getUserId();
-    List<CrosswordInfo> photos = await photoRepository.getAllCrosswordsInfo(userId);
+    List<CrosswordInfo> photos =
+        await photoRepository.getAllCrosswordsInfo(userId);
     return photos;
   }
 
