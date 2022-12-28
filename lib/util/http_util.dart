@@ -29,6 +29,20 @@ class HttpUtil {
     return response;
   }
 
+  static Future<http.Response> getUserInfo(String userId) async {
+    var args = {'user_id': userId};
+
+    var url = Config.makeUriQuery(baseUrl, "/api/user/info",
+        queryParameters: args);
+    var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
+
+    var response = await http.get(
+      url,
+      headers: headers,
+    );
+    return response;
+  }
+
   static Future<http.Response> sendCrossword(
       String userId, String imagePath) async {
     var url = Config.makeUriQuery(baseUrl, '/api/solver');
