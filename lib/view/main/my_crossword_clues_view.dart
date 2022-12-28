@@ -54,7 +54,6 @@ class MyCrosswordCluesState extends State<MyCrosswordClues> {
   }
 
   //TODO bug: can add only one crossword clue (have to quit view, then work good)
-  //TODO reload view or add to new field to crosswordClues
   void resetControllers() {
     questionController.clear();
     for (var answerController in answerControllers) {
@@ -62,7 +61,7 @@ class MyCrosswordCluesState extends State<MyCrosswordClues> {
     }
     answerControllers = <TextEditingController>[];
     initializeOneAnswerTextField();
-    alertDialogHeight = 2 / 9;
+    alertDialogHeight = 0.1 + 1 / 9;
   }
 
   void initializeOneAnswerTextField() {
@@ -80,7 +79,7 @@ class MyCrosswordCluesState extends State<MyCrosswordClues> {
         future: crosswordClues,
         builder: (context, clues) {
           if (clues.hasData) {
-            return showCrosswordClues(clues.data!);
+            return showCrosswordClues(setState, clues.data!);
           } else {
             return LoadingPageUtil.buildLoadingPage();
           }
@@ -94,23 +93,83 @@ class MyCrosswordCluesState extends State<MyCrosswordClues> {
     );
   }
 
-  Widget showCrosswordClues(List<CrosswordClue> crosswordCluesToShow) {
+  Widget showCrosswordClues(
+      StateSetter setState, List<CrosswordClue> crosswordCluesToShow) {
     if (crosswordCluesToShow.isEmpty) {
       return const Center(
           child: Text('Brak haseł', textAlign: TextAlign.center));
     } else {
       return ListView(children: <Widget>[
         for (var clue in crosswordCluesToShow)
-          createCrosswordClueListView(context, clue),
+          createCrosswordClueListView(context, setState, clue),
       ]);
     }
   }
 
-  ExpansionTile createCrosswordClueListView(
-      BuildContext context, CrosswordClue clue) {
-    //TODO allow edit and delete clue
-    return ExpansionTile(
-        title: Text(clue.question), children: createAnswersView(clue.answers));
+  Row createCrosswordClueListView(
+      BuildContext context, StateSetter setState, CrosswordClue clue) {
+    //TODO allow edit
+    return Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+      buildCrosswordClue(clue),
+      buildRemoveButton(context, setState, clue)
+    ]);
+  }
+
+  Expanded buildCrosswordClue(CrosswordClue clue) {
+    return Expanded(
+        flex: 4,
+        child: ExpansionTile(
+            title: Text(clue.question),
+            children: createAnswersView(clue.answers)));
+  }
+
+  Expanded buildRemoveButton(
+      BuildContext context, StateSetter setState, CrosswordClue clue) {
+    return Expanded(
+      flex: 1,
+      child: IconButton(
+        onPressed: () {
+          showDeletionAlert(context, setState, clue);
+        },
+        icon: const Icon(
+          Icons.delete,
+          size: 40.0,
+          color: Colors.red,
+        ),
+      ),
+    );
+  }
+
+  void showDeletionAlert(
+      BuildContext context, StateSetter setState, CrosswordClue clue) {
+    Widget okButton = TextButton(
+      child: const Text("Usuń"),
+      onPressed: () async {
+        await HttpUtil.deleteCrosswordClue(await userId, clue.question);
+        setState(() {
+          crosswordClues = getCrosswordClues();
+        });
+        Navigator.pop(context);
+      },
+    );
+    Widget cancelButton = TextButton(
+      child: const Text("Anuluj"),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+    );
+
+    AlertDialog alert = AlertDialog(
+      title: const Text("Czy na pewno chcesz usunąć pytanie?"),
+      actions: [okButton, cancelButton],
+    );
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
   }
 
   List<Widget> createAnswersView(List<String> answers) {
@@ -139,7 +198,7 @@ class MyCrosswordCluesState extends State<MyCrosswordClues> {
                 height: MediaQuery.of(context).size.height * alertDialogHeight,
                 child: Column(children: [
                   createQuestionTextField(),
-                  Expanded(child: createAnswerTextFields()),
+                  Expanded(child: createAnswerTextFields(context, setState)),
                   addAnswerButton(setState),
                 ]),
               ),
@@ -183,19 +242,47 @@ class MyCrosswordCluesState extends State<MyCrosswordClues> {
     );
   }
 
-  Widget createAnswerTextFields() {
+  Widget createAnswerTextFields(context, setState) {
     return ListView.builder(
       itemCount: answerControllers.length,
       itemBuilder: (context, index) {
-        return Container(
-          child: answerTextFields[index],
-        );
+        return Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+          Expanded(flex: 3, child: answerTextFields[index]),
+          buildRemoveButtonForAnswerFields(
+              context, setState, answerTextFields[index])
+        ]);
       },
     );
   }
 
-  //TODO allow also to remove added text field
-  Widget addAnswerButton(setState) {
+  Expanded buildRemoveButtonForAnswerFields(
+      BuildContext context, StateSetter setState, TextField answerTextField) {
+    return Expanded(
+      flex: 1,
+      child: IconButton(
+        onPressed: () {
+          setState(() {
+            TextEditingController controller = answerTextField.controller!;
+            controller.clear();
+            answerControllers.remove(controller);
+            answerTextFields.remove(answerTextField);
+            if (answerControllers.isEmpty) {
+              alertDialogHeight = 0.1 + 1 / 9;
+            } else {
+              alertDialogHeight = 0.1 + answerControllers.length / 9;
+            }
+          });
+        },
+        icon: const Icon(
+          Icons.delete,
+          size: 40.0,
+          color: Colors.red,
+        ),
+      ),
+    );
+  }
+
+  Widget addAnswerButton(StateSetter setState) {
     return ListTile(
       visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
       title: const Icon(Icons.add),
@@ -206,7 +293,7 @@ class MyCrosswordCluesState extends State<MyCrosswordClues> {
         setState(() {
           answerControllers.add(controller);
           answerTextFields.add(field);
-          alertDialogHeight = answerControllers.length / 9;
+          alertDialogHeight = 0.1 + answerControllers.length / 9;
         });
       },
     );
