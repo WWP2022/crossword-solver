@@ -2,25 +2,24 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:crossword_solver/util/http_util.dart';
-import 'package:crossword_solver/util/loading_page_util.dart';
-import 'package:crossword_solver/util/prefs_util.dart';
-import 'package:crossword_solver/view/save_crossword_view.dart';
+import 'package:crossword_solver/core/utils/http_util.dart';
+import 'package:crossword_solver/core/utils/loading_page_util.dart';
+import 'package:crossword_solver/core/utils/prefs_util.dart';
+import 'package:crossword_solver/database/crossword_info_repository.dart';
+import 'package:crossword_solver/model/crossword_info.dart';
+import 'package:crossword_solver/save_crossword_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
-import '../../database/crossword_info_repository.dart';
-import '../../model/crossword_info.dart';
-
-class MyCrosswords extends StatefulWidget {
-  const MyCrosswords({super.key});
+class CrosswordsPage extends StatefulWidget {
+  const CrosswordsPage({super.key});
 
   @override
-  State<MyCrosswords> createState() => MyCrosswordsState();
+  State<CrosswordsPage> createState() => CrosswordsPageState();
 }
 
-class MyCrosswordsState extends State<MyCrosswords> {
+class CrosswordsPageState extends State<CrosswordsPage> {
   late List<CrosswordInfo> crosswordsInfo;
 
   @override

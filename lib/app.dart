@@ -1,20 +1,18 @@
-import 'package:crossword_solver/view/main/my_account_view.dart';
-import 'package:crossword_solver/view/main/my_crossword_clues_view.dart';
-import 'package:crossword_solver/view/main/solve_crossword_view.dart';
+import 'package:crossword_solver/auth/pages/user_page.dart';
+import 'package:crossword_solver/crossword_clues/pages/crossword_clues_page.dart';
+import 'package:crossword_solver/solve_crossword/pages/solve_crossword_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'main/my_crosswords_view.dart';
+import 'crosswords/pages/crosswords_page.dart';
 
 class App extends StatelessWidget {
-  static const String _title = 'Rozwiąż krzyżówkę';
-
   const App({super.key});
 
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      title: _title,
+      title: "Rozwiąż krzyżówkę",
       home: AppView(),
     );
   }
@@ -33,9 +31,9 @@ class _AppViewState extends State<AppView> {
 
   static final List<Widget> _widgetOptions = <Widget>[
     const SolveCrossword(),
-    const MyCrosswordClues(),
-    const MyCrosswords(),
-    const MyAccount(),
+    const CrosswordCluesPage(),
+    const CrosswordsPage(),
+    const UserPage(),
   ];
 
   void _onItemTapped(int index) {
@@ -77,9 +75,7 @@ class _AppViewState extends State<AppView> {
         appBar: AppBar(
           title: Text(_title),
         ),
-        body: Center(
-          child: _widgetOptions.elementAt(_selectedIndex),
-        ),
+        body: _widgetOptions.elementAt(_selectedIndex),
         bottomNavigationBar: Theme(
           data: Theme.of(context).copyWith(
               canvasColor: Colors.blue,

@@ -1,51 +1,21 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:async/async.dart';
+import 'package:crossword_solver/core/config/config.dart';
 import 'package:crossword_solver/model/crossword_clue.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 
-import '../config/config.dart';
-
 class HttpUtil {
   static String baseUrl = Config.getBaseUrl();
-
-  static Future<http.Response> loginUser(String userId) async {
-    var url = Config.makeUriQuery(baseUrl, '/api/login');
-    var body = {'user_id': userId};
-    var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
-
-    var response =
-        await http.post(url, headers: headers, body: jsonEncode(body));
-    return response;
-  }
-
-  static Future<http.Response> registerUser() async {
-    var url = Config.makeUriQuery(baseUrl, '/api/register');
-
-    var response = await http.post(url);
-    return response;
-  }
-
-  static Future<http.Response> getUserInfo(String userId) async {
-    var args = {'user_id': userId};
-
-    var url = Config.makeUriQuery(baseUrl, "/api/user/info",
-        queryParameters: args);
-    var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
-
-    var response = await http.get(
-      url,
-      headers: headers,
-    );
-    return response;
-  }
 
   static Future<http.Response> sendCrossword(
       String userId, String imagePath) async {
     var url = Config.makeUriQuery(baseUrl, '/api/solver');
+    log("url:$url");
     var request = http.MultipartRequest('POST', url);
 
     // final byteData = await rootBundle.load('assets/images/39.png');
@@ -128,16 +98,6 @@ class HttpUtil {
 
     var response =
         await http.put(url, body: jsonEncode(crosswordClue), headers: headers);
-    return response;
-  }
-
-  static Future<http.Response> deleteCrosswordClue(
-      String userId, String question) async {
-    final args = {'user_id': userId, 'question': question};
-    var url = Config.makeUriQuery(baseUrl, '/api/crossword-clue',
-        queryParameters: args);
-    var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
-    var response = await http.delete(url, headers: headers);
     return response;
   }
 

@@ -1,5 +1,15 @@
+import 'package:dio/dio.dart';
+import 'package:riverpod/riverpod.dart';
+
+// ignore_for_file: unnecessary_const
+
+final dioClientProvider = Provider<DioClient>(
+  (ref) => DioClient(),
+);
+
 //const on purpose as 'This constructor is only guaranteed to work when invoked as const'
-class Config {
+class DioClient {
+  final Dio _dio = Dio();
   static const String profile = const String.fromEnvironment("PROFILE",
       defaultValue: "SERVER"); //possible options: SERVER EMULATOR PHONE
 
@@ -9,17 +19,17 @@ class Config {
 
   static String getBaseUrl() {
     if (profile == "SERVER") {
-      return "crossword-solver.theliver.pl";
+      return "https://crossword-solver.theliver.pl";
     } else {
-      return ipPort;
+      return "http://$ipPort";
     }
   }
 
-  static makeUriQuery(String baseUrl, String endpoint,
-      {Map<String, String> queryParameters = const <String, String>{}}) {
-    if (profile != "SERVER") {
-      return Uri.http(baseUrl, endpoint, queryParameters);
-    }
-    return Uri.https(baseUrl, endpoint, queryParameters);
+  DioClient() {
+    _dio.options = BaseOptions(
+      baseUrl: "${getBaseUrl()}/api",
+    );
   }
+
+  Dio get dio => _dio;
 }
