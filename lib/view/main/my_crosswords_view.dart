@@ -59,13 +59,6 @@ class MyCrosswordsState extends State<MyCrosswords> {
           child:
               Text('Brak zapisanych krzyżówek', textAlign: TextAlign.center));
     }
-    crosswordsInfoToShow.sort((a, b) {
-      int statusComp = -a.status.compareTo(b.status);
-      if (statusComp == 0) {
-        return a.crosswordName.compareTo(b.crosswordName);
-      }
-      return statusComp;
-    });
     return ListView(padding: const EdgeInsets.all(5), children: <Widget>[
       for (var crosswordInfo in crosswordsInfoToShow)
         createCrosswordList(context, crosswordInfo),
@@ -85,9 +78,6 @@ class MyCrosswordsState extends State<MyCrosswords> {
     Image image = Image.file(File(crosswordInfo.path));
 
     var color = Colors.white;
-    if (crosswordInfo.status == "solved_waiting") {
-      color = Colors.orange;
-    }
 
     return Container(
         color: color,
