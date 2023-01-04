@@ -3,20 +3,22 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
+import 'package:crossword_solver/auth/controllers/providers.dart';
+import 'package:crossword_solver/core/utils/http_util.dart';
+import 'package:crossword_solver/core/utils/loading_page_util.dart';
+import 'package:crossword_solver/core/utils/modify_image_util.dart';
+import 'package:crossword_solver/core/utils/path_util.dart';
+import 'package:crossword_solver/core/utils/prefs_util.dart';
 import 'package:crossword_solver/database/crossword_info_repository.dart';
 import 'package:crossword_solver/model/crossword_info.dart';
-import 'package:crossword_solver/util/http_util.dart';
-import 'package:crossword_solver/util/prefs_util.dart';
-import 'package:crossword_solver/view/save_crossword_view.dart';
+import 'package:crossword_solver/save_crossword_view.dart';
+import 'package:crossword_solver/solve_crossword/widgets/custom_floating_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-
-import '../../util/loading_page_util.dart';
-import '../../util/modify_image_util.dart';
-import '../../util/path_util.dart';
 
 late CameraDescription cameraDescription;
 
@@ -44,14 +46,14 @@ class SolveCrossword extends StatelessWidget {
   }
 }
 
-class TakePictureScreen extends StatefulWidget {
+class TakePictureScreen extends ConsumerStatefulWidget {
   const TakePictureScreen({super.key});
 
   @override
   TakePictureScreenState createState() => TakePictureScreenState();
 }
 
-class TakePictureScreenState extends State<TakePictureScreen> {
+class TakePictureScreenState extends ConsumerState<TakePictureScreen> {
   late CameraController cameraController;
   late Future<void> _initializeControllerFuture;
   late FlashMode flashMode;
@@ -78,96 +80,57 @@ class TakePictureScreenState extends State<TakePictureScreen> {
         future: _initializeControllerFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            return buildFullScreenCamera(context);
+            return SizedBox(
+              width: double.infinity,
+              child: CameraPreview(cameraController),
+            );
           } else {
             return LoadingPageUtil.buildLoadingPage();
           }
         },
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: Row(
-        children: <Widget>[
-          galleryFloatingButton(context),
-          photoFloatingButton(context),
-          flashFloatingButton(context),
-        ],
-      ),
-    );
-  }
-
-  Transform buildFullScreenCamera(BuildContext context) {
-    double controllerAspectRatio = cameraController.value.aspectRatio;
-    double contextAspectRatio = MediaQuery.of(context).size.aspectRatio;
-    final scale = 1 / (controllerAspectRatio * contextAspectRatio);
-    return Transform.scale(
-      scale: scale,
-      alignment: Alignment.topCenter,
-      child: CameraPreview(cameraController),
-    );
-  }
-
-  Expanded galleryFloatingButton(BuildContext context) {
-    return Expanded(
-      flex: 10,
-      child: Align(
-        alignment: Alignment.bottomLeft,
-        child: FloatingActionButton(
-            child: const Icon(Icons.photo),
-            onPressed: () async {
-              await choosePhotoAndSolve(context);
-            }),
-      ),
-    );
-  }
-
-  Expanded photoFloatingButton(BuildContext context) {
-    return Expanded(
-      flex: 10,
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        child: FloatingActionButton(
-          child: const Icon(Icons.camera_alt),
-          onPressed: () async {
-            await takePhotoAndSolve(context);
-          },
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            CustomFloatingButton(
+              icon: Icons.photo,
+              onPressed: () async {
+                await choosePhotoAndSolve(context, ref);
+              },
+            ),
+            CustomFloatingButton(
+              icon: Icons.camera_alt,
+              onPressed: () async {
+                await takePhotoAndSolve(context, ref);
+              },
+            ),
+            CustomFloatingButton(
+              icon: (flashMode == FlashMode.always)
+                  ? Icons.flash_on
+                  : Icons.flash_off,
+              onPressed: () {
+                setState(() {
+                  if (flashMode == FlashMode.off) {
+                    flashMode = FlashMode.always;
+                  } else {
+                    flashMode = FlashMode.off;
+                  }
+                });
+              },
+            )
+          ],
         ),
       ),
     );
   }
 
-  Expanded flashFloatingButton(BuildContext context) {
-    return Expanded(
-      flex: 10,
-      child: Align(
-        alignment: Alignment.bottomRight,
-        child: FloatingActionButton(
-          child: showFlashIcon(),
-          onPressed: () {
-            changeFlashMode();
-          },
-        ),
-      ),
-    );
-  }
-
-  Icon showFlashIcon() {
-    if (flashMode == FlashMode.off) {
-      return const Icon(Icons.flash_off);
-    }
-    return const Icon(Icons.flash_on);
-  }
-
-  void changeFlashMode() {
-    setState(() {
-      if (flashMode == FlashMode.off) {
-        flashMode = FlashMode.always;
-      } else {
-        flashMode = FlashMode.off;
-      }
-    });
-  }
-
-  Future<void> choosePhotoAndSolve(BuildContext context) async {
+  Future<void> choosePhotoAndSolve(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
     PickedFile? pickedFile = await ImagePicker().getImage(
       source: ImageSource.gallery,
       maxWidth: 1800,
@@ -178,11 +141,14 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 
       String croppedImagePath = await cropImage(imageFromGallery);
 
-      await solve(context, croppedImagePath);
+      await solve(context, croppedImagePath, ref);
     }
   }
 
-  Future<void> takePhotoAndSolve(BuildContext context) async {
+  Future<void> takePhotoAndSolve(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
     try {
       await _initializeControllerFuture;
       cameraController.setFlashMode(flashMode);
@@ -194,7 +160,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 
       String croppedImagePath = await cropImage(imageFromCamera);
 
-      await solve(context, croppedImagePath);
+      await solve(context, croppedImagePath, ref);
     } catch (e) {
       print(e);
     }
@@ -217,11 +183,19 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     return path;
   }
 
-  Future<void> solve(BuildContext context, String croppedImagePath) async {
+  Future<void> solve(
+    BuildContext context,
+    String croppedImagePath,
+    WidgetRef ref,
+  ) async {
     String userId = await PrefsUtil.getUserId();
 
-    var responseAfterUpload =
-        await uploadAndSaveUnprocessedImage(userId, croppedImagePath, context);
+    var responseAfterUpload = await uploadAndSaveUnprocessedImage(
+      userId,
+      croppedImagePath,
+      context,
+      ref,
+    );
 
     var crosswordId = responseAfterUpload['id'];
     var crosswordName = responseAfterUpload['crossword_name'];
@@ -256,18 +230,23 @@ class TakePictureScreenState extends State<TakePictureScreen> {
           crosswordId, solvedImageFile.path, crosswordName, userId, status);
 
       var snackBar = serverSolvedMessageSnackbar(
-          context,
-          responseAfterStatusCheck,
-          solvedImageFile.path,
-          crosswordId.toString(),
-          crosswordName);
+        context,
+        responseAfterStatusCheck,
+        solvedImageFile.path,
+        crosswordId.toString(),
+        crosswordName,
+      );
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
     }
   }
 
   Future<dynamic> uploadAndSaveUnprocessedImage(
-      String userId, String imagePath, BuildContext context) async {
-    var response = await sendImageToServer(userId, imagePath, context);
+    String userId,
+    String imagePath,
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    var response = await sendImageToServer(userId, imagePath, context, ref);
 
     var crosswordId = response['id'];
     var crosswordName = response['crossword_name'];
@@ -279,7 +258,11 @@ class TakePictureScreenState extends State<TakePictureScreen> {
   }
 
   Future<dynamic> sendImageToServer(
-      String userId, String imagePath, BuildContext context) async {
+    String userId,
+    String imagePath,
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
     var response = await HttpUtil.sendCrossword(userId, imagePath);
 
     var body = jsonDecode(response.body);
@@ -287,6 +270,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     var status = response.statusCode;
     if (status == 200) {
       print('upload sucess');
+      ref.read(manageUserNotifierProvider.notifier).incrementSentCrosswords();
     } else {
       print("Error ${response.statusCode}");
     }
@@ -295,20 +279,28 @@ class TakePictureScreenState extends State<TakePictureScreen> {
   }
 
   void saveUnprocessedImageInDatabase(
-      int id, String path, String crosswordName, String userId) async {
+    int id,
+    String path,
+    String crosswordName,
+    String userId,
+  ) async {
     CrosswordInfoRepository crosswordInfoRepository = CrosswordInfoRepository();
     CrosswordInfo crosswordInfo = CrosswordInfo(
-        id: id,
-        path: path,
-        crosswordName: crosswordName,
-        timestamp: DateTime.now(),
-        userId: userId,
-        status: "new");
+      id: id,
+      path: path,
+      crosswordName: crosswordName,
+      timestamp: DateTime.now(),
+      userId: userId,
+      status: "new",
+    );
     crosswordInfoRepository.insertCrosswordInfo(crosswordInfo);
   }
 
   Future<dynamic> checkCrosswordStatus(
-      String userId, String crosswordId, BuildContext context) async {
+    String userId,
+    String crosswordId,
+    BuildContext context,
+  ) async {
     print("checkCrosswordStatus");
 
     dynamic decodedResponse;
@@ -337,14 +329,23 @@ class TakePictureScreenState extends State<TakePictureScreen> {
   }
 
   SnackBar serverSolvedMessageSnackbar(
-      context, dynamic decodedResponse, String path, String id, String name) {
+    context,
+    dynamic decodedResponse,
+    String path,
+    String id,
+    String name,
+  ) {
     var status = decodedResponse['status'];
     var message = decodedResponse['message'];
 
     return SnackBar(
       behavior: SnackBarBehavior.floating,
-      content: const Text("Pomyślnie rozwiązano krzyżówkę",
-          style: TextStyle(fontWeight: FontWeight.bold)),
+      content: const Text(
+        "Pomyślnie rozwiązano krzyżówkę",
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       backgroundColor: (Colors.green),
       action: SnackBarAction(
         textColor: Colors.indigo,
@@ -368,7 +369,8 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     return SnackBar(
       behavior: SnackBarBehavior.floating,
       content: Text(
-          "Nie udało się rozwiązać krzyżówki: ${errorMessageMap[message]}"),
+        "Nie udało się rozwiązać krzyżówki: ${errorMessageMap[message]}",
+      ),
       backgroundColor: (Colors.red),
       // action: SnackBarAction(
       //   label: 'dismiss',
@@ -378,31 +380,50 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     );
   }
 
-  void navigateToSaveCrossword(context, String path, String id, String name) {
+  void navigateToSaveCrossword(
+    context,
+    String path,
+    String id,
+    String name,
+  ) {
     Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) => SaveCrossword(path: path, id: id, name: name)),
+        builder: (context) => SaveCrossword(
+          path: path,
+          id: id,
+          name: name,
+        ),
+      ),
     );
   }
 
-  void saveImageBeforeAccept(int id, String path, String crosswordName,
-      String userId, String status) async {
+  void saveImageBeforeAccept(
+    int id,
+    String path,
+    String crosswordName,
+    String userId,
+    String status,
+  ) async {
     CrosswordInfoRepository crosswordInfoRepository = CrosswordInfoRepository();
     CrosswordInfo crosswordInfo = CrosswordInfo(
-        id: id,
-        path: path,
-        crosswordName: crosswordName,
-        timestamp: DateTime.now(),
-        userId: userId,
-        status: status);
+      id: id,
+      path: path,
+      crosswordName: crosswordName,
+      timestamp: DateTime.now(),
+      userId: userId,
+      status: status,
+    );
     await crosswordInfoRepository.insertCrosswordInfo(crosswordInfo);
   }
 
   SnackBar serverErrorSnackBar(String statusCode) {
     return SnackBar(
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.red,
-        content: Text("Server error! Status code: $statusCode"));
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: Colors.red,
+      content: Text(
+        "Server error! Status code: $statusCode",
+      ),
+    );
   }
 }

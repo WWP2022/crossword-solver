@@ -1,19 +1,21 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:crossword_solver/core/utils/http_util.dart';
+import 'package:crossword_solver/core/utils/prefs_util.dart';
 import 'package:crossword_solver/database/crossword_info_repository.dart';
-import 'package:crossword_solver/util/http_util.dart';
-import 'package:crossword_solver/util/prefs_util.dart';
 import 'package:flutter/material.dart';
 
-import '../model/crossword_info.dart';
+import 'model/crossword_info.dart';
 
 class SaveCrossword extends StatefulWidget {
   final String path;
   final String id;
   final String name;
 
-  const SaveCrossword({Key? key, required this.path, required this.id, required this.name}) : super(key: key);
+  const SaveCrossword(
+      {Key? key, required this.path, required this.id, required this.name})
+      : super(key: key);
 
   @override
   State<SaveCrossword> createState() => _SaveCrossword();
@@ -59,7 +61,6 @@ class _SaveCrossword extends State<SaveCrossword> {
         ]));
   }
 
-
   TextButton rejectCrosswordButton() {
     return TextButton(
       style: ButtonStyle(
@@ -68,11 +69,8 @@ class _SaveCrossword extends State<SaveCrossword> {
       onPressed: () async {
         var userId = await PrefsUtil.getUserId();
 
-        var response = await HttpUtil.updateCrossword(
-            userId,
-            widget.id,
-            isAccepted: false
-        );
+        var response = await HttpUtil.updateCrossword(userId, widget.id,
+            isAccepted: false);
 
         var decodedResponse = jsonDecode(response.body);
 
@@ -113,17 +111,13 @@ class _SaveCrossword extends State<SaveCrossword> {
 
           var response;
           if (widget.name != crosswordName) {
-            response = await HttpUtil.updateCrossword(
-                userId,
-                widget.id,
-                isAccepted: true,
-                crosswordName: crosswordName
-            );
+            response = await HttpUtil.updateCrossword(userId, widget.id,
+                isAccepted: true, crosswordName: crosswordName);
           } else {
             response = await HttpUtil.updateCrossword(
-                userId,
-                widget.id,
-                isAccepted: true,
+              userId,
+              widget.id,
+              isAccepted: true,
             );
           }
 
@@ -135,8 +129,7 @@ class _SaveCrossword extends State<SaveCrossword> {
                 widget.path,
                 decodedResponse['crossword_name'],
                 decodedResponse['user_id'],
-                decodedResponse['status']
-            );
+                decodedResponse['status']);
           } else {
             print("error: " + decodedResponse['error']);
           }
@@ -169,8 +162,8 @@ class _SaveCrossword extends State<SaveCrossword> {
     );
   }
 
-  void saveAcceptedImage(
-      int id, String path, String crosswordName, String userId, String status) async {
+  void saveAcceptedImage(int id, String path, String crosswordName,
+      String userId, String status) async {
     CrosswordInfoRepository crosswordInfoRepository = CrosswordInfoRepository();
     CrosswordInfo crosswordInfo = CrosswordInfo(
         id: id,
