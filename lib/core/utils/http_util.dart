@@ -112,6 +112,16 @@ class HttpUtil {
     return response;
   }
 
+  static Future<http.Response> deleteCrosswordClue(
+      String userId, String question) async {
+    final args = {'user_id': userId, 'question': question};
+    var url = Config.makeUriQuery(baseUrl, '/api/crossword-clue',
+        queryParameters: args);
+    var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
+    var response = await http.delete(url, headers: headers);
+    return response;
+  }
+
   static Future<http.Response> deleteCrossword(
       String userId, String crosswordId) async {
     final args = {'user_id': userId, 'crossword_id': crosswordId};
