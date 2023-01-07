@@ -139,7 +139,7 @@ class CrosswordCluesPageState extends State<CrosswordCluesPage> {
     );
   }
 
-  displayRemoveClueDialog(BuildContext context, CrosswordClue clue) {
+  Future displayRemoveClueDialog(BuildContext context, CrosswordClue clue) {
     return showDialog(
         context: context,
         builder: (context) {
@@ -191,7 +191,7 @@ class CrosswordCluesPageState extends State<CrosswordCluesPage> {
     return answersWidgets;
   }
 
-  displayTextInputDialog(BuildContext context) {
+  Future displayTextInputDialog(BuildContext context) {
     return showDialog(
         context: context,
         builder: (context) {

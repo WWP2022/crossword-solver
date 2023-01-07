@@ -56,7 +56,7 @@ class CrosswordsPageState extends State<CrosswordsPage> {
     if (crosswordsInfoToShow.isEmpty) {
       return const Center(
           child:
-              Text('Brak zapisanych krzyżówek', textAlign: TextAlign.center));
+              Text('BRAK ZAPISANYCH KRZYŻÓWEK', textAlign: TextAlign.center));
     }
     crosswordsInfoToShow.sort((a, b) {
       int statusComp = -a.status.compareTo(b.status);
@@ -164,7 +164,7 @@ class CrosswordsPageState extends State<CrosswordsPage> {
       flex: 300,
       child: IconButton(
         onPressed: () {
-          showDeletionAlert(context, photo);
+          displayRemoveCrosswordDialog(context, photo);
         },
         icon: const Icon(
           Icons.delete,
@@ -175,50 +175,50 @@ class CrosswordsPageState extends State<CrosswordsPage> {
     );
   }
 
-  void showDeletionAlert(BuildContext context, CrosswordInfo crosswordInfo) {
-    Widget okButton = TextButton(
-      child: const Text("Usuń"),
-      onPressed: () async {
-        setState(() {
-          crosswordsInfo.remove(crosswordInfo);
+  Future displayRemoveCrosswordDialog(
+      BuildContext context, CrosswordInfo crosswordInfo) {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return StatefulBuilder(builder: (context, setState) {
+            return AlertDialog(
+              contentPadding: const EdgeInsets.fromLTRB(2.0, 0.0, 2.0, 2.0),
+              title: Transform.translate(
+                offset: const Offset(0, -16),
+                child: const Text('CZY NA PEWNO CHCESZ USUNĄĆ KRZYŻÓWKĘ?'),
+              ),
+              actions: createButtonsInRemoveClueDialog(context, crosswordInfo),
+              actionsPadding:
+                  const EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
+            );
+          });
         });
-
-        var response = await HttpUtil.deleteCrossword(
-            crosswordInfo.userId, crosswordInfo.id.toString());
-
-        if (response.statusCode == 204) {
-          removeImage(crosswordInfo.id);
-        } else {
-          var decodedResponse = jsonDecode(response.body);
-          print("error: " + decodedResponse['error']);
-        }
-
-        Navigator.pop(context);
-      },
-    );
-    Widget cancelButton = TextButton(
-      child: const Text("Anuluj"),
-      onPressed: () {
-        Navigator.pop(context);
-      },
-    );
-
-    AlertDialog alert = AlertDialog(
-      title: const Text("Czy na pewno chcesz usunąć krzyżówkę?"),
-      actions: [okButton, cancelButton],
-    );
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return alert;
-      },
-    );
   }
 
-  void removeImage(int id) async {
-    CrosswordInfoRepository photoRepository = CrosswordInfoRepository();
-    await photoRepository.deleteCrosswordInfo(id);
+  List<Widget> createButtonsInRemoveClueDialog(
+      BuildContext context, CrosswordInfo crosswordInfo) {
+    return <Widget>[
+      TextButton(
+        child: const Text('ANULUJ'),
+        onPressed: () {
+          setState(() {
+            Navigator.pop(context);
+          });
+        },
+      ),
+      TextButton(
+          child: const Text('USUŃ'),
+          onPressed: () async {
+            await HttpUtil.deleteCrossword(
+                crosswordInfo.userId, crosswordInfo.id.toString());
+            CrosswordInfoRepository photoRepository = CrosswordInfoRepository();
+            await photoRepository.deleteCrosswordInfo(crosswordInfo.id);
+            setState(() {
+              crosswordsInfo.remove(crosswordInfo);
+              Navigator.pop(context);
+            });
+          }),
+    ];
   }
 }
 
@@ -244,7 +244,6 @@ class ModifyCrosswordNameScreenState extends State<ModifyCrosswordNameScreen> {
 
   @override
   void dispose() {
-    // Clean up the controller when the widget is disposed.
     modifyCrosswordNameController.dispose();
     super.dispose();
   }
@@ -348,9 +347,9 @@ class ModifyCrosswordNameScreenState extends State<ModifyCrosswordNameScreen> {
     );
 
     AlertDialog alert = AlertDialog(
-      title: const Text("Nie udało się zapisać zmiany nazwy krzyżówki!"),
+      title: const Text("NIE UDAŁO SIĘ ZAPISAĆ ZMIANY NAZWY KRZYŻÓWKI!"),
       content: const Text(
-          "Nazwa krzyżówki nie może być pusta lub identyczna z już istniejącą."),
+          "NAZWA KRZYŻÓWKI NIE MOŻE BYĆ PUSTA LUB IDENTYCZNA Z JUŻ ISTNIEJĄCĄ."),
       actions: [okButton],
     );
 
