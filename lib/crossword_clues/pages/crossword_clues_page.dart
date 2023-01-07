@@ -52,22 +52,21 @@ class CrosswordCluesPageState extends State<CrosswordCluesPage> {
     return CrosswordClue(answers, question, user_id);
   }
 
-  //TODO bug: can add only one crossword clue (have to quit view, then work good)
-  //TODO reload view or add to new field to crosswordClues
   void resetControllers() {
     questionController.clear();
     for (var answerController in answerControllers) {
       answerController.clear();
     }
     answerControllers = <TextEditingController>[];
+    answerTextFields = <TextField>[];
     initializeOneAnswerTextField();
-    alertDialogHeight = 2 / 9;
+    alertDialogHeight = 0.1 + 1 / 9;
   }
 
   void initializeOneAnswerTextField() {
     TextEditingController controller = TextEditingController();
     controller.clear();
-    TextField field = createTextField(controller, "Podaj odpowiedź");
+    TextField field = createTextField(controller, "PODAJ ODPOWIEDŹ");
     answerControllers.add(controller);
     answerTextFields.add(field);
   }
@@ -79,7 +78,7 @@ class CrosswordCluesPageState extends State<CrosswordCluesPage> {
         future: crosswordClues,
         builder: (context, clues) {
           if (clues.hasData) {
-            return showCrosswordClues(clues.data!);
+            return showCrosswordClues(setState, clues.data!);
           } else {
             return LoadingPageUtil.buildLoadingPage();
           }
@@ -93,23 +92,93 @@ class CrosswordCluesPageState extends State<CrosswordCluesPage> {
     );
   }
 
-  Widget showCrosswordClues(List<CrosswordClue> crosswordCluesToShow) {
+  Widget showCrosswordClues(
+      StateSetter setState, List<CrosswordClue> crosswordCluesToShow) {
     if (crosswordCluesToShow.isEmpty) {
       return const Center(
-          child: Text('Brak haseł', textAlign: TextAlign.center));
+          child: Text('BRAK HASEŁ', textAlign: TextAlign.center));
     } else {
       return ListView(children: <Widget>[
         for (var clue in crosswordCluesToShow)
-          createCrosswordClueListView(context, clue),
+          createCrosswordClueListView(context, setState, clue),
       ]);
     }
   }
 
-  ExpansionTile createCrosswordClueListView(
+  Row createCrosswordClueListView(
+      BuildContext context, StateSetter setState, CrosswordClue clue) {
+    //TODO allow edit
+    return Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+      buildCrosswordClue(clue),
+      buildRemoveButton(context, setState, clue)
+    ]);
+  }
+
+  Expanded buildCrosswordClue(CrosswordClue clue) {
+    return Expanded(
+        flex: 4,
+        child: ExpansionTile(
+            title: Text(clue.question),
+            children: createAnswersView(clue.answers)));
+  }
+
+  Expanded buildRemoveButton(
+      BuildContext context, StateSetter setState, CrosswordClue clue) {
+    return Expanded(
+      flex: 1,
+      child: IconButton(
+        onPressed: () {
+          displayRemoveClueDialog(context, clue);
+        },
+        icon: const Icon(
+          Icons.delete,
+          size: 40.0,
+          color: Colors.red,
+        ),
+      ),
+    );
+  }
+
+  displayRemoveClueDialog(BuildContext context, CrosswordClue clue) {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return StatefulBuilder(builder: (context, setState) {
+            return AlertDialog(
+              contentPadding: const EdgeInsets.fromLTRB(2.0, 0.0, 2.0, 2.0),
+              title: Transform.translate(
+                offset: const Offset(0, -16),
+                child: const Text('CZY NA PEWNO CHCESZ USUNĄĆ PYTANIE?'),
+              ),
+              actions: createButtonsInRemoveClueDialog(context, clue),
+              actionsPadding:
+                  const EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
+            );
+          });
+        });
+  }
+
+  List<Widget> createButtonsInRemoveClueDialog(
       BuildContext context, CrosswordClue clue) {
-    //TODO allow edit and delete clue
-    return ExpansionTile(
-        title: Text(clue.question), children: createAnswersView(clue.answers));
+    return <Widget>[
+      TextButton(
+        child: const Text('ANULUJ'),
+        onPressed: () {
+          setState(() {
+            Navigator.pop(context);
+          });
+        },
+      ),
+      TextButton(
+          child: const Text('USUŃ'),
+          onPressed: () async {
+            await HttpUtil.deleteCrosswordClue(await userId, clue.question);
+            setState(() {
+              crosswordClues = getCrosswordClues();
+              Navigator.pop(context);
+            });
+          }),
+    ];
   }
 
   List<Widget> createAnswersView(List<String> answers) {
@@ -131,14 +200,14 @@ class CrosswordCluesPageState extends State<CrosswordCluesPage> {
               contentPadding: const EdgeInsets.fromLTRB(2.0, 0.0, 2.0, 2.0),
               title: Transform.translate(
                 offset: const Offset(0, -16),
-                child: const Text('Dodaj nowe pytanie'),
+                child: const Text('DODAJ NOWE PYTANIE'),
               ),
               content: SizedBox(
                 width: MediaQuery.of(context).size.width * 0.99,
                 height: MediaQuery.of(context).size.height * alertDialogHeight,
                 child: Column(children: [
                   createQuestionTextField(),
-                  Expanded(child: createAnswerTextFields()),
+                  Expanded(child: displayAnswerTextFields(context, setState)),
                   addAnswerButton(setState),
                 ]),
               ),
@@ -156,7 +225,7 @@ class CrosswordCluesPageState extends State<CrosswordCluesPage> {
       controller: questionController,
       decoration: const InputDecoration(
           border: OutlineInputBorder(),
-          hintText: "Podaj hasło",
+          hintText: "PODAJ HASŁO",
           contentPadding: EdgeInsets.fromLTRB(20.0, 2.0, 20.0, 2.0)),
       onEditingComplete: () {
         setState(() {
@@ -182,18 +251,46 @@ class CrosswordCluesPageState extends State<CrosswordCluesPage> {
     );
   }
 
-  Widget createAnswerTextFields() {
+  Widget displayAnswerTextFields(BuildContext context, StateSetter setState) {
     return ListView.builder(
       itemCount: answerControllers.length,
       itemBuilder: (context, index) {
-        return Container(
-          child: answerTextFields[index],
-        );
+        return Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+          Expanded(flex: 3, child: answerTextFields[index]),
+          buildRemoveButtonForAnswerFields(
+              context, setState, answerTextFields[index])
+        ]);
       },
     );
   }
 
-  //TODO allow also to remove added text field
+  Expanded buildRemoveButtonForAnswerFields(
+      BuildContext context, StateSetter setState, TextField answerTextField) {
+    return Expanded(
+      flex: 1,
+      child: IconButton(
+        onPressed: () {
+          setState(() {
+            TextEditingController controller = answerTextField.controller!;
+            controller.clear();
+            answerControllers.remove(controller);
+            answerTextFields.remove(answerTextField);
+            if (answerControllers.isEmpty) {
+              alertDialogHeight = 0.1 + 1 / 9;
+            } else {
+              alertDialogHeight = 0.1 + answerControllers.length / 9;
+            }
+          });
+        },
+        icon: const Icon(
+          Icons.delete,
+          size: 40.0,
+          color: Colors.red,
+        ),
+      ),
+    );
+  }
+
   Widget addAnswerButton(setState) {
     return ListTile(
       visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
@@ -201,11 +298,11 @@ class CrosswordCluesPageState extends State<CrosswordCluesPage> {
       contentPadding: EdgeInsets.zero,
       onTap: () {
         final controller = TextEditingController();
-        final field = createTextField(controller, "Podaj odpowiedź");
+        final field = createTextField(controller, "PODAJ ODPOWIEDŹ");
         setState(() {
           answerControllers.add(controller);
           answerTextFields.add(field);
-          alertDialogHeight = answerControllers.length / 9;
+          alertDialogHeight = 0.1 + answerControllers.length / 9;
         });
       },
     );
@@ -264,8 +361,8 @@ class CrosswordCluesPageState extends State<CrosswordCluesPage> {
     );
 
     AlertDialog alert = AlertDialog(
-      title: const Text("Nie udało się dodać hasła!"),
-      content: const Text("Pytanie oraz odpowiedź muszą zostać uzupełnione"),
+      title: const Text("NIE UDAŁO SIĘ DODAĆ HASŁA!"),
+      content: const Text("PYTANIE ORAZ ODPOWIEDŹ MUSZĄ ZOSTAĆ UZUPEŁNIONE"),
       actions: [okButton],
     );
 
@@ -286,8 +383,8 @@ class CrosswordCluesPageState extends State<CrosswordCluesPage> {
     );
 
     AlertDialog alert = AlertDialog(
-      title: const Text("Nie udało się dodać hasła!"),
-      content: const Text("Pytanie istnieje już w bazie"),
+      title: const Text("NIE UDAŁO SIĘ DODAĆ HASŁA!"),
+      content: const Text("PYTANIE ISTNIEJE JUŻ W BAZIE"),
       actions: [okButton],
     );
 
