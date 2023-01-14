@@ -48,7 +48,11 @@ class _SaveCrossword extends State<SaveCrossword> {
           ),
           Expanded(
             flex: 300,
-            child: Image.file(File(widget.path)),
+            child: InteractiveViewer(
+                panEnabled: true,
+                minScale: 1,
+                maxScale: 4,
+                child: Image.file(File(widget.path))),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
