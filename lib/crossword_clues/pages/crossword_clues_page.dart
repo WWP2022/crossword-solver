@@ -98,10 +98,13 @@ class CrosswordCluesPageState extends State<CrosswordCluesPage> {
       return const Center(
           child: Text('BRAK HASEŁ', textAlign: TextAlign.center));
     } else {
-      return ListView(children: <Widget>[
-        for (var clue in crosswordCluesToShow)
-          createCrosswordClueListView(context, setState, clue),
-      ]);
+      return Scrollbar(
+        thickness: 6.0,
+        child: ListView(children: <Widget>[
+          for (var clue in crosswordCluesToShow)
+            createCrosswordClueListView(context, setState, clue),
+        ]),
+      );
     }
   }
 

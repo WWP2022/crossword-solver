@@ -328,37 +328,49 @@ class ModifyCrosswordNameScreenState extends State<ModifyCrosswordNameScreen> {
                 ),
                 SizedBox(
                   height: MediaQuery.of(context).size.height * 0.6,
-                  // width: MediaQuery.of(context).size.width,
                   child: Center(
-                      heightFactor: MediaQuery.of(context).size.height,
-                      widthFactor: 0.5,
-                      child: widget.image),
+                    heightFactor: MediaQuery.of(context).size.height,
+                    widthFactor: 0.5,
+                    child: InteractiveViewer(
+                        panEnabled: true,
+                        minScale: 1,
+                        maxScale: 4,
+                        child: widget.image),
+                  ),
                 ),
               ],
             )));
   }
 
-  void showEmptyNameAlert(BuildContext context) {
-    Widget okButton = TextButton(
-      child: const Text("OK"),
-      onPressed: () {
-        Navigator.pop(context);
-      },
-    );
-
-    AlertDialog alert = AlertDialog(
-      title: const Text("NIE UDAŁO SIĘ ZAPISAĆ ZMIANY NAZWY KRZYŻÓWKI!"),
-      content: const Text(
-          "NAZWA KRZYŻÓWKI NIE MOŻE BYĆ PUSTA LUB IDENTYCZNA Z JUŻ ISTNIEJĄCĄ."),
-      actions: [okButton],
-    );
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return alert;
-      },
-    );
+  Future showEmptyNameAlert(BuildContext context) {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return StatefulBuilder(builder: (context, setState) {
+            return AlertDialog(
+              contentPadding: const EdgeInsets.fromLTRB(2.0, 0.0, 2.0, 2.0),
+              title: Transform.translate(
+                offset: const Offset(0, -16),
+                child:
+                    const Text("NIE UDAŁO SIĘ ZAPISAĆ ZMIANY NAZWY KRZYŻÓWKI!"),
+              ),
+              content: const Text(
+                  "NAZWA KRZYŻÓWKI NIE MOŻE BYĆ PUSTA LUB IDENTYCZNA Z JUŻ ISTNIEJĄCĄ."),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    setState(() {
+                      Navigator.pop(context);
+                    });
+                  },
+                ),
+              ],
+              actionsPadding:
+                  const EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
+            );
+          });
+        });
   }
 
   void saveCrosswordName(CrosswordInfo crosswordInfo, String text) {
