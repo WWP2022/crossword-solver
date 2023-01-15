@@ -53,6 +53,8 @@ dependencies:
   freezed_annotation: ^2.2.0
   dartz: ^0.10.1
   dio: ^4.0.6
+  edge_detection: ^1.1.1
+  permission_handler: ^10.0.0
 
 
 dev_dependencies:
@@ -89,6 +91,7 @@ flutter:
     - assets/images/39.png
     - assets/images/crossword.jpg
     - assets/images/crossword_small.png
+    - assets/images/crossword_background.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
