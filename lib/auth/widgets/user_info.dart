@@ -37,13 +37,14 @@ class UserInfo extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    onPressed: (){
-                      Clipboard.setData(ClipboardData(text: manageUserState?.userId))
-                          .then((value) => ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              behavior: SnackBarBehavior.floating,
-                              content: Text("Skopiowano ID użytkownika"),
-                            )));
+                    onPressed: () {
+                      Clipboard.setData(
+                              ClipboardData(text: manageUserState?.userId))
+                          .then((value) => ScaffoldMessenger.of(context)
+                                  .showSnackBar(const SnackBar(
+                                behavior: SnackBarBehavior.floating,
+                                content: Text("Skopiowano ID użytkownika"),
+                              )));
                     },
                     icon: const Icon(Icons.copy),
                   ),
