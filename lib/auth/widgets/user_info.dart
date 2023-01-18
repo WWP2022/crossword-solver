@@ -1,6 +1,7 @@
 import 'package:crossword_solver/auth/controllers/providers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -17,29 +18,42 @@ class UserInfo extends StatelessWidget {
           padding: const EdgeInsets.only(top: 48.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Text(
-                'Id: ',
+                'ID: ',
                 style: TextStyle(
                   fontSize: 18,
                 ),
               ),
-              Text(
-                manageUserState?.userId ?? "---",
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
-              ),
-              const SizedBox(height: 12.0),
-              const Padding(
-                padding: EdgeInsets.only(top: 12.0),
-                child: Text(
-                  'Użytkownik od: ',
-                  style: TextStyle(
-                    fontSize: 18,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    manageUserState?.userId ?? "---",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
                   ),
+                  IconButton(
+                    onPressed: () {
+                      Clipboard.setData(
+                              ClipboardData(text: manageUserState?.userId))
+                          .then((value) => ScaffoldMessenger.of(context)
+                                  .showSnackBar(const SnackBar(
+                                behavior: SnackBarBehavior.floating,
+                                content: Text("Skopiowano ID użytkownika"),
+                              )));
+                    },
+                    icon: const Icon(Icons.copy),
+                  ),
+                ],
+              ),
+              const Text(
+                'Użytkownik od: ',
+                style: TextStyle(
+                  fontSize: 18,
                 ),
               ),
               Text(
