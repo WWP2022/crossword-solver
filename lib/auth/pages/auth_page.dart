@@ -1,7 +1,15 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:crossword_solver/app.dart';
 import 'package:crossword_solver/auth/controllers/providers.dart';
+import 'package:crossword_solver/core/utils/http_util.dart';
+import 'package:crossword_solver/database/crossword_info_repository.dart';
+import 'package:crossword_solver/model/crossword_info.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 
 class AuthPage extends ConsumerStatefulWidget {
   const AuthPage({super.key});
@@ -54,7 +62,49 @@ class AuthPageState extends ConsumerState<AuthPage> {
                     ),
                     onPressed: () async {
                       if (!authState.isLoading) {
-                        await authNotifier.login(_idController.text);
+                        if (await authNotifier.login(_idController.text)) {
+                          var userId = _idController.text;
+
+                          var response =
+                              await HttpUtil.getAllCrosswordsIds(userId);
+
+                          var body = jsonDecode(response.body);
+                          var status = response.statusCode;
+
+                          if (status == 200) {
+                            Directory documentDirectory =
+                                await getApplicationDocumentsDirectory();
+                            for (var crosswordInfo in body) {
+                              var crosswordId = crosswordInfo['crossword_id'];
+                              var crosswordName =
+                                  crosswordInfo['crossword_name'];
+                              var crosswordStatus =
+                                  crosswordInfo['crossword_status'];
+
+                              var getSolvedCrosswordResponse =
+                                  await HttpUtil.getSolvedCrossword(
+                                      userId, crosswordId.toString());
+
+                              File solvedImageFile = File(join(
+                                  documentDirectory.path,
+                                  '$crosswordName.png'));
+                              solvedImageFile.writeAsBytesSync(
+                                  getSolvedCrosswordResponse.bodyBytes);
+
+                              saveImage(crosswordId, solvedImageFile.path,
+                                  crosswordName, userId, crosswordStatus);
+                            }
+                          } else {
+                            print(status);
+                          }
+
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const AppView(),
+                            ),
+                          );
+                        }
                       }
                     },
                     child: Builder(
@@ -125,5 +175,24 @@ class AuthPageState extends ConsumerState<AuthPage> {
         },
       ),
     );
+  }
+
+  void saveImage(
+    int id,
+    String path,
+    String crosswordName,
+    String userId,
+    String status,
+  ) async {
+    CrosswordInfoRepository crosswordInfoRepository = CrosswordInfoRepository();
+    CrosswordInfo crosswordInfo = CrosswordInfo(
+      id: id,
+      path: path,
+      crosswordName: crosswordName,
+      timestamp: DateTime.now(),
+      userId: userId,
+      status: status,
+    );
+    await crosswordInfoRepository.insertCrosswordInfo(crosswordInfo);
   }
 }

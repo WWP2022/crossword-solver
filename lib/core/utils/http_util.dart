@@ -5,9 +5,11 @@ import 'dart:io';
 import 'package:async/async.dart';
 import 'package:crossword_solver/core/config/config.dart';
 import 'package:crossword_solver/model/crossword_clue.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 
 class HttpUtil {
   static String baseUrl = Config.getBaseUrl();
@@ -18,13 +20,13 @@ class HttpUtil {
     log("url:$url");
     var request = http.MultipartRequest('POST', url);
 
-    // final byteData = await rootBundle.load('assets/images/39.png');
-    // var imageFile =
-    //     File('${(await getTemporaryDirectory()).path}/crossword.jpg');
-    // imageFile = await imageFile.writeAsBytes(byteData.buffer
-    //     .asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
+    final byteData = await rootBundle.load('assets/images/39.png');
+    var imageFile =
+        File('${(await getTemporaryDirectory()).path}/crossword.jpg');
+    imageFile = await imageFile.writeAsBytes(byteData.buffer
+        .asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
 
-    var imageFile = File(imagePath);
+    // var imageFile = File(imagePath);
     var stream = http.ByteStream(DelegatingStream(imageFile.openRead()));
     var length = await imageFile.length();
     var image = http.MultipartFile('image', stream, length,
@@ -130,6 +132,16 @@ class HttpUtil {
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
 
     var response = await http.delete(url, headers: headers);
+    return response;
+  }
+
+  static Future<http.Response> getAllCrosswordsIds(String userId) async {
+    final args = {'user_id': userId};
+    var url = Config.makeUriQuery(baseUrl, "api/crossword/all",
+        queryParameters: args);
+    var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
+
+    var response = await http.get(url, headers: headers);
     return response;
   }
 }
