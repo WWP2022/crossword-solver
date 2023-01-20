@@ -54,7 +54,14 @@ class AuthPageState extends ConsumerState<AuthPage> {
                     ),
                     onPressed: () async {
                       if (!authState.isLoading) {
-                        await authNotifier.login(_idController.text);
+                        if (await authNotifier.login(_idController.text)) {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const AppView(),
+                            ),
+                          );
+                        }
                       }
                     },
                     child: Builder(

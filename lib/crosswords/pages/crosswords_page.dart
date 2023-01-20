@@ -92,13 +92,13 @@ class CrosswordsPageState extends State<CrosswordsPage> {
         color: color,
         margin: const EdgeInsets.only(bottom: 5.0),
         child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-          const Expanded(flex: 25, child: SizedBox()),
+          const Expanded(flex: 20, child: SizedBox()),
           buildClickableImage(crosswordInfo, image),
-          const Expanded(flex: 25, child: SizedBox()),
+          const Expanded(flex: 20, child: SizedBox()),
           buildClickableCrosswordName(crosswordInfo, image),
-          const Expanded(flex: 25, child: SizedBox()),
+          const Expanded(flex: 20, child: SizedBox()),
           buildDateInProperFormat(crosswordInfo.timestamp),
-          const Expanded(flex: 25, child: SizedBox()),
+          const Expanded(flex: 20, child: SizedBox()),
           buildRemoveButton(crosswordInfo),
         ]));
   }
@@ -155,13 +155,13 @@ class CrosswordsPageState extends State<CrosswordsPage> {
   }
 
   Expanded buildDateInProperFormat(DateTime dateTime) {
-    DateFormat format = DateFormat('yyyy-MM-dd\nhh:mm');
-    return Expanded(flex: 300, child: Text(format.format(dateTime)));
+    DateFormat format = DateFormat('yyyy-MM-dd\nHH:mm');
+    return Expanded(flex: 250, child: Text(format.format(dateTime)));
   }
 
   Expanded buildRemoveButton(CrosswordInfo photo) {
     return Expanded(
-      flex: 300,
+      flex: 150,
       child: IconButton(
         onPressed: () {
           displayRemoveCrosswordDialog(context, photo);
