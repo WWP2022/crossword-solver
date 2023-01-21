@@ -1,5 +1,6 @@
 import 'package:crossword_solver/app.dart';
 import 'package:crossword_solver/auth/controllers/providers.dart';
+import 'package:crossword_solver/core/utils/fetch_crosswords.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -54,6 +55,9 @@ class AuthPageState extends ConsumerState<AuthPage> {
                     ),
                     onPressed: () async {
                       if (!authState.isLoading) {
+
+                        FetchCrossword.getMissingCrosswords(_idController.text);
+
                         if (await authNotifier.login(_idController.text)) {
                           Navigator.pushReplacement(
                             context,
