@@ -3,10 +3,10 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:async/async.dart';
+import 'package:crossword_solver/auth/utils/date_time_converter.dart';
 import 'package:crossword_solver/core/config/config.dart';
 import 'package:crossword_solver/model/crossword_clue.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 
 class HttpUtil {
@@ -30,7 +30,7 @@ class HttpUtil {
     var image = http.MultipartFile('image', stream, length,
         filename: basename(imagePath));
 
-    var date = DateFormat("y-MMMM-d H:m:s").format(DateTime.now());
+    var date = const DateTimeConverter().toJson(DateTime.now())!;
 
     request.files.add(image);
     request.fields['user_id'] = userId;
@@ -68,6 +68,16 @@ class HttpUtil {
       url,
       headers: headers,
     );
+    return response;
+  }
+
+  static Future<http.Response> getAllCrosswordsInfo(String userId) async {
+    final args = {'user_id': userId};
+    var url = Config.makeUriQuery(baseUrl, "api/crossword/all",
+        queryParameters: args);
+    var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
+
+    var response = await http.get(url, headers: headers);
     return response;
   }
 
